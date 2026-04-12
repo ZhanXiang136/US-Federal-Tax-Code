@@ -1,0 +1,90 @@
+// Basic 2025 examples for filing status, standard deduction, taxable income, and tax liability.
+
+// -------------------------
+// Example 1: Alice (single)
+// -------------------------
+//  - Single
+//  - Wages: 60,000
+//  - Under 65, not blind.
+
+filing_status(alice, single).
+wage_income(alice, 60000).
+
+age_65_or_over_flag(alice, 0).
+blind_flag(alice, 0).
+spouse_age_65_or_over_flag(alice, 0).
+spouse_blind_flag(alice, 0).
+
+// Expected values for Alice (2025 rules):
+//   AGI = 60,000
+//   Std. deduction (single, under 65, not blind) = 15,750
+//   Taxable income = 44,250
+//   Tax = 5,071.5
+
+expected_taxable_income(alice, 44250).
+expected_tax(alice, 5071.5).
+
+// -------------------------
+// Example 2: Joan (single)
+// -------------------------
+//  - Single
+//  - Wages: 110,000
+//  - Under 65, not blind.
+
+filing_status(joan, single).
+wage_income(joan, 110000).
+
+age_65_or_over_flag(joan, 0).
+blind_flag(joan, 0).
+spouse_age_65_or_over_flag(joan, 0).
+spouse_blind_flag(joan, 0).
+
+// Expected values for Joan (2025 rules):
+//   AGI = 110,000
+//   Std. deduction (single, under 65, not blind) = 15,750
+//   Taxable income = 94,250
+//   Tax = 15,649
+
+expected_taxable_income(joan, 94250).
+expected_tax(joan, 15649).
+
+// -------------------------
+// Example 3: Bob (single)
+// -------------------------
+//  - Single
+//  - Wages: 50,000
+//  - Taxable interest: 200
+//  - Ordinary dividends: 300
+//  - Under 65, not blind.
+
+filing_status(bob, single).
+wage_income(bob, 50000).
+taxable_interest_income(bob, 200).
+ordinary_dividends(bob, 300).
+
+age_65_or_over_flag(bob, 0).
+blind_flag(bob, 0).
+spouse_age_65_or_over_flag(bob, 0).
+spouse_blind_flag(bob, 0).
+
+// Expected values for Bob (2025 rules):
+//   AGI = 50,500
+//   Std. deduction (single, under 65, not blind) = 15,750
+//   Taxable income = 34,750
+//   Tax = 3,931.5
+
+expected_taxable_income(bob, 34750).
+expected_tax(bob, 3931.5).
+
+// Simple correctness check: does our model match expected numbers?
+
+case_ok(?T) :-
+    tax_year(?Year),
+    expected_taxable_income(?T, ?ExpTI),
+    expected_tax(?T, ?ExpTax),
+    tax_summary(?T, ?Year, _Status, _AGI, _SD, ?TI, ?Tax),
+    ?TI =:= ?ExpTI,
+    ?Tax =:= ?ExpTax.
+
+case_ok(?T) :-
+    agi_case_ok(?T).

@@ -1,0 +1,6 @@
+flora_symbol(head_of_household,0,\@,1759,182,function_symbol,nontransactional_symbol,'tax_brackets.ergo').
+flora_symbol(married_filing_separately,0,\@,1197,131,function_symbol,nontransactional_symbol,'tax_brackets.ergo').
+flora_symbol(qualifying_surviving_spouse,0,\@,1165,126,function_symbol,nontransactional_symbol,'tax_brackets.ergo').
+flora_symbol(married_filing_jointly,0,\@,603,75,function_symbol,nontransactional_symbol,'tax_brackets.ergo').
+flora_symbol(single,0,\@,41,24,function_symbol,nontransactional_symbol,'tax_brackets.ergo').
+flora_symbol(tax_liability,4,\@,36,24,predicate_symbol,nontransactional_symbol,'tax_brackets.ergo').

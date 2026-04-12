@@ -1,0 +1,9 @@
+#include "flrheader.flh"
+#include "flr_fld_standardtypes.flh"
+
+#define FLORA_COMPILATION_ID 1
+
+FLORA_THIS_WORKSPACE(tblflapply)(agi_loaded,__fldnewvar1,__fldnewvar2).
+FLORA_THIS_WORKSPACE(tblflapply)(agi,__fldnewvar1,__fldnewvar2,__fldnewvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(income_total,__fldnewvar1,__fldnewvar2,__fldnewvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(income_item,__fldnewvar1,__fldnewvar2,__fldnewvar3).

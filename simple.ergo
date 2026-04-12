@@ -1,0 +1,47 @@
+/*
+   THIS FILE IS IN THE PUBLIC DOMAIN.
+
+   IT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+   OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+/*
+   Captures a simple scenario:
+
+   Scenario:
+      Ostriches are birds. Birds normally are not flightless, but ostriches are.
+      A worm-eater is someone who ate a worm.
+      Some known ostriches and other birds are also listed.
+*/
+
+
+:- use_argumentation_theory.
+
+ostrich::bird.  // our taxonomy is minimal here
+
+// birds are not flightless things - defeasible rule
+@{bird_rule}
+\neg ?B:flightless :- ?B:bird.
+// ostrich ARE flightless things - defeasible rule
+@{ostrich_rule}
+?B:flightless :- ?B:ostrich.
+
+// being an ostrich ourweights being just a bird.
+\overrides(ostrich_rule,bird_rule).
+
+// Some winged friends.
+Fred:ostrich.
+Smokey:ostrich.
+Sam:bird.
+Tweety:bird.
+
+
+/*
+    Queries:  ?X:flightless.
+              \neg ?X:flightless.
+*/

@@ -1,0 +1,6 @@
+#include "flrheader.flh"
+#define FLORA_COMPILATION_ID 1
+
+
+FLORA_THIS_WORKSPACE(tblflapply)(tax_year,2025,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(config_loaded,1,__newcontextvar3).

@@ -1,0 +1,353 @@
+// Adjusted Gross Income (AGI)
+// Phase 1: income aggregation + adjustments (prototype).
+
+// Income sources (amounts are taxable amounts).
+// wage_income(T, Amount).
+// taxable_interest_income(T, Amount).
+// ordinary_dividends(T, Amount).
+// qualified_dividends(T, Amount).  % treated as income here; tax rate handled later
+// capital_gains(T, Amount).
+// business_income(T, Amount).
+// rental_income(T, Amount).
+// royalty_income(T, Amount).
+// farm_income(T, Amount).
+// taxable_refunds(T, Amount).
+// alimony_received_pre2019(T, Amount).
+// social_security_taxable(T, Amount).
+// unemployment_comp(T, Amount).
+// other_income(T, Amount).
+
+// NOTE: income_total/2 is kept for backwards compatibility.
+// Prefer income_item/2 + income_sum/2.
+
+income_item(?T, ?Total) :-
+    wage_income(?T, ?W),
+    ?Total \is ?W.
+
+income_item(?T, ?Total) :-
+    taxable_interest_income(?T, ?I),
+    ?Total \is ?I.
+
+income_item(?T, ?Total) :-
+    ordinary_dividends(?T, ?D),
+    ?Total \is ?D.
+
+income_item(?T, ?Total) :-
+    qualified_dividends(?T, ?QD),
+    ?Total \is ?QD.
+
+income_item(?T, ?Total) :-
+    capital_gains(?T, ?G),
+    ?Total \is ?G.
+
+income_item(?T, ?Total) :-
+    business_income(?T, ?B),
+    ?Total \is ?B.
+
+income_item(?T, ?Total) :-
+    rental_income(?T, ?R),
+    ?Total \is ?R.
+
+income_item(?T, ?Total) :-
+    royalty_income(?T, ?R),
+    ?Total \is ?R.
+
+income_item(?T, ?Total) :-
+    farm_income(?T, ?F),
+    ?Total \is ?F.
+
+income_item(?T, ?Total) :-
+    taxable_refunds(?T, ?TR),
+    ?Total \is ?TR.
+
+income_item(?T, ?Total) :-
+    alimony_received_pre2019(?T, ?A),
+    ?Total \is ?A.
+
+income_item(?T, ?Total) :-
+    social_security_taxable(?T, ?SS),
+    ?Total \is ?SS.
+
+income_item(?T, ?Total) :-
+    unemployment_comp(?T, ?U),
+    ?Total \is ?U.
+
+income_item(?T, ?Total) :-
+    other_income(?T, ?O),
+    ?Total \is ?O.
+
+income_total(?T, ?Total) :-
+    income_item(?T, ?Total).
+
+// Aggregate helpers with empty-set defaults.
+// Avoid aggregates to keep compatibility with minimal Ergo setups.
+income_sum(?T, ?Total) :-
+    wage_income_or_zero(?T, ?W),
+    taxable_interest_or_zero(?T, ?I),
+    ordinary_dividends_or_zero(?T, ?D),
+    qualified_dividends_or_zero(?T, ?QD),
+    capital_gains_or_zero(?T, ?G),
+    business_income_or_zero(?T, ?B),
+    rental_income_or_zero(?T, ?R),
+    royalty_income_or_zero(?T, ?Ry),
+    farm_income_or_zero(?T, ?F),
+    taxable_refunds_or_zero(?T, ?TR),
+    alimony_received_pre2019_or_zero(?T, ?A),
+    social_security_taxable_or_zero(?T, ?SS),
+    unemployment_comp_or_zero(?T, ?U),
+    other_income_or_zero(?T, ?O),
+    ?Total \is ?W + ?I + ?D + ?QD + ?G + ?B + ?R + ?Ry + ?F + ?TR + ?A + ?SS + ?U + ?O.
+
+wage_income_or_zero(?T, ?W) :-
+    wage_income(?T, ?W),
+    !.
+wage_income_or_zero(?T, 0) :-
+    \+ wage_income(?T, _).
+
+taxable_interest_or_zero(?T, ?I) :-
+    taxable_interest_income(?T, ?I),
+    !.
+taxable_interest_or_zero(?T, 0) :-
+    \+ taxable_interest_income(?T, _).
+
+ordinary_dividends_or_zero(?T, ?D) :-
+    ordinary_dividends(?T, ?D),
+    !.
+ordinary_dividends_or_zero(?T, 0) :-
+    \+ ordinary_dividends(?T, _).
+
+qualified_dividends_or_zero(?T, ?QD) :-
+    qualified_dividends(?T, ?QD),
+    !.
+qualified_dividends_or_zero(?T, 0) :-
+    \+ qualified_dividends(?T, _).
+
+capital_gains_or_zero(?T, ?G) :-
+    capital_gains(?T, ?G),
+    !.
+capital_gains_or_zero(?T, 0) :-
+    \+ capital_gains(?T, _).
+
+business_income_or_zero(?T, ?B) :-
+    business_income(?T, ?B),
+    !.
+business_income_or_zero(?T, 0) :-
+    \+ business_income(?T, _).
+
+rental_income_or_zero(?T, ?R) :-
+    rental_income(?T, ?R),
+    !.
+rental_income_or_zero(?T, 0) :-
+    \+ rental_income(?T, _).
+
+royalty_income_or_zero(?T, ?Ry) :-
+    royalty_income(?T, ?Ry),
+    !.
+royalty_income_or_zero(?T, 0) :-
+    \+ royalty_income(?T, _).
+
+farm_income_or_zero(?T, ?F) :-
+    farm_income(?T, ?F),
+    !.
+farm_income_or_zero(?T, 0) :-
+    \+ farm_income(?T, _).
+
+taxable_refunds_or_zero(?T, ?TR) :-
+    taxable_refunds(?T, ?TR),
+    !.
+taxable_refunds_or_zero(?T, 0) :-
+    \+ taxable_refunds(?T, _).
+
+alimony_received_pre2019_or_zero(?T, ?A) :-
+    alimony_received_pre2019(?T, ?A),
+    !.
+alimony_received_pre2019_or_zero(?T, 0) :-
+    \+ alimony_received_pre2019(?T, _).
+
+social_security_taxable_or_zero(?T, ?SS) :-
+    social_security_taxable(?T, ?SS),
+    !.
+social_security_taxable_or_zero(?T, 0) :-
+    \+ social_security_taxable(?T, _).
+
+unemployment_comp_or_zero(?T, ?U) :-
+    unemployment_comp(?T, ?U),
+    !.
+unemployment_comp_or_zero(?T, 0) :-
+    \+ unemployment_comp(?T, _).
+
+other_income_or_zero(?T, ?O) :-
+    other_income(?T, ?O),
+    !.
+other_income_or_zero(?T, 0) :-
+    \+ other_income(?T, _).
+
+// Adjustments to income (Schedule 1 style; amounts are deductible adjustments).
+// educator_expenses(T, Amount).
+// ira_deduction(T, Amount).
+// student_loan_interest(T, Amount).
+// hsa_deduction(T, Amount).
+// self_employment_tax_deduction(T, Amount).
+// self_employed_health_insurance(T, Amount).
+// penalty_on_early_withdrawal(T, Amount).
+// sep_simple_qualified_plans(T, Amount).
+// self_employed_retirement(T, Amount).
+// moving_expenses_active_duty(T, Amount).
+// alimony_paid_pre2019(T, Amount).
+// other_adjustments(T, Amount).
+
+// NOTE: adjustment_total/2 is kept for backwards compatibility.
+// Prefer adjustment_item/2 + adjustment_sum/2.
+
+adjustment_item(?T, ?Total) :-
+    educator_expenses(?T, ?E),
+    ?Total \is ?E.
+
+adjustment_item(?T, ?Total) :-
+    ira_deduction(?T, ?I),
+    ?Total \is ?I.
+
+adjustment_item(?T, ?Total) :-
+    student_loan_interest(?T, ?S),
+    ?Total \is ?S.
+
+adjustment_item(?T, ?Total) :-
+    hsa_deduction(?T, ?H),
+    ?Total \is ?H.
+
+adjustment_item(?T, ?Total) :-
+    self_employment_tax_deduction(?T, ?SE),
+    ?Total \is ?SE.
+
+adjustment_item(?T, ?Total) :-
+    self_employed_health_insurance(?T, ?HI),
+    ?Total \is ?HI.
+
+adjustment_item(?T, ?Total) :-
+    penalty_on_early_withdrawal(?T, ?P),
+    ?Total \is ?P.
+
+adjustment_item(?T, ?Total) :-
+    sep_simple_qualified_plans(?T, ?SEP),
+    ?Total \is ?SEP.
+
+adjustment_item(?T, ?Total) :-
+    self_employed_retirement(?T, ?SER),
+    ?Total \is ?SER.
+
+adjustment_item(?T, ?Total) :-
+    moving_expenses_active_duty(?T, ?M),
+    ?Total \is ?M.
+
+adjustment_item(?T, ?Total) :-
+    alimony_paid_pre2019(?T, ?A),
+    ?Total \is ?A.
+
+adjustment_item(?T, ?Total) :-
+    other_adjustments(?T, ?O),
+    ?Total \is ?O.
+
+adjustment_total(?T, ?Total) :-
+    adjustment_item(?T, ?Total).
+
+adjustment_sum(?T, ?Total) :-
+    educator_expenses_or_zero(?T, ?E),
+    ira_deduction_or_zero(?T, ?I),
+    student_loan_interest_or_zero(?T, ?S),
+    hsa_deduction_or_zero(?T, ?H),
+    self_employment_tax_deduction_or_zero(?T, ?SE),
+    self_employed_health_insurance_or_zero(?T, ?HI),
+    penalty_on_early_withdrawal_or_zero(?T, ?P),
+    sep_simple_qualified_plans_or_zero(?T, ?SEP),
+    self_employed_retirement_or_zero(?T, ?SER),
+    moving_expenses_active_duty_or_zero(?T, ?M),
+    alimony_paid_pre2019_or_zero(?T, ?A),
+    other_adjustments_or_zero(?T, ?O),
+    ?Total \is ?E + ?I + ?S + ?H + ?SE + ?HI + ?P + ?SEP + ?SER + ?M + ?A + ?O.
+
+educator_expenses_or_zero(?T, ?E) :-
+    educator_expenses(?T, ?E),
+    !.
+educator_expenses_or_zero(?T, 0) :-
+    \+ educator_expenses(?T, _).
+
+ira_deduction_or_zero(?T, ?I) :-
+    ira_deduction(?T, ?I),
+    !.
+ira_deduction_or_zero(?T, 0) :-
+    \+ ira_deduction(?T, _).
+
+student_loan_interest_or_zero(?T, ?S) :-
+    student_loan_interest(?T, ?S),
+    !.
+student_loan_interest_or_zero(?T, 0) :-
+    \+ student_loan_interest(?T, _).
+
+hsa_deduction_or_zero(?T, ?H) :-
+    hsa_deduction(?T, ?H),
+    !.
+hsa_deduction_or_zero(?T, 0) :-
+    \+ hsa_deduction(?T, _).
+
+self_employment_tax_deduction_or_zero(?T, ?SE) :-
+    self_employment_tax_deduction(?T, ?SE),
+    !.
+self_employment_tax_deduction_or_zero(?T, 0) :-
+    \+ self_employment_tax_deduction(?T, _).
+
+self_employed_health_insurance_or_zero(?T, ?HI) :-
+    self_employed_health_insurance(?T, ?HI),
+    !.
+self_employed_health_insurance_or_zero(?T, 0) :-
+    \+ self_employed_health_insurance(?T, _).
+
+penalty_on_early_withdrawal_or_zero(?T, ?P) :-
+    penalty_on_early_withdrawal(?T, ?P),
+    !.
+penalty_on_early_withdrawal_or_zero(?T, 0) :-
+    \+ penalty_on_early_withdrawal(?T, _).
+
+sep_simple_qualified_plans_or_zero(?T, ?SEP) :-
+    sep_simple_qualified_plans(?T, ?SEP),
+    !.
+sep_simple_qualified_plans_or_zero(?T, 0) :-
+    \+ sep_simple_qualified_plans(?T, _).
+
+self_employed_retirement_or_zero(?T, ?SER) :-
+    self_employed_retirement(?T, ?SER),
+    !.
+self_employed_retirement_or_zero(?T, 0) :-
+    \+ self_employed_retirement(?T, _).
+
+moving_expenses_active_duty_or_zero(?T, ?M) :-
+    moving_expenses_active_duty(?T, ?M),
+    !.
+moving_expenses_active_duty_or_zero(?T, 0) :-
+    \+ moving_expenses_active_duty(?T, _).
+
+alimony_paid_pre2019_or_zero(?T, ?A) :-
+    alimony_paid_pre2019(?T, ?A),
+    !.
+alimony_paid_pre2019_or_zero(?T, 0) :-
+    \+ alimony_paid_pre2019(?T, _).
+
+other_adjustments_or_zero(?T, ?O) :-
+    other_adjustments(?T, ?O),
+    !.
+other_adjustments_or_zero(?T, 0) :-
+    \+ other_adjustments(?T, _).
+
+// AGI = total income - adjustments (floored at 0).
+max2_agi(?A, ?B, ?Max) :-
+    ?A >= ?B,
+    ?Max \is ?A.
+
+max2_agi(?A, ?B, ?Max) :-
+    ?A < ?B,
+    ?Max \is ?B.
+
+agi(?T, ?AGI) :-
+    income_sum(?T, ?Income),
+    adjustment_sum(?T, ?Adj),
+    ?Temp \is ?Income - ?Adj,
+    max2_agi(?Temp, 0, ?AGI).

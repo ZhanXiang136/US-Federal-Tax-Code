@@ -1,0 +1,17 @@
+#include "flrheader.flh"
+#define FLORA_COMPILATION_ID 1
+
+
+FLORA_THIS_WORKSPACE(tblflapply)(filing_status,dana,single,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(wage_income,dana,80000,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(taxable_interest_income,dana,500,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(ordinary_dividends,dana,300,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(capital_gains,dana,1200,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(ira_deduction,dana,2000,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(hsa_deduction,dana,1000,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(age_65_or_over_flag,dana,0,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(blind_flag,dana,0,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(spouse_age_65_or_over_flag,dana,0,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(spouse_blind_flag,dana,0,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(expected_agi,dana,79000,__newcontextvar3).
+FLORA_THIS_WORKSPACE(tblflapply)(income_item,dana,80000,__newcontextvar3).

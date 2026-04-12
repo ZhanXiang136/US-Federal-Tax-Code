@@ -1,0 +1,15 @@
+flora_symbol(filing_status,2,\@,214,35,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(spouse_age_65_or_over_flag,2,\@,165,30,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(base_standard_deduction,3,\@,20,8,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(blind_flag,2,\@,156,29,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(single,0,\@,25,8,function_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(married_filing_separately,0,\@,36,9,function_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(married_filing_jointly,0,\@,47,10,function_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(head_of_household,0,\@,69,12,function_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(additional_standard_deduction,3,\@,201,34,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(standard_deduction,3,\@,254,40,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(age_65_or_over_flag,2,\@,147,28,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(per_qualifier_additional_amount,3,\@,80,19,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(qualifier_count,2,\@,137,27,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(spouse_blind_flag,2,\@,174,31,predicate_symbol,nontransactional_symbol,'standard_deduction.ergo').
+flora_symbol(qualifying_surviving_spouse,0,\@,58,11,function_symbol,nontransactional_symbol,'standard_deduction.ergo').

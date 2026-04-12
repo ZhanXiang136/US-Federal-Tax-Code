@@ -1,0 +1,47 @@
+// -------------------------
+// Example 1: Alice (single)
+// -------------------------
+//  - Single
+//  - Wages: 60,000
+//  - Under 65, not blind.
+
+filing_status(alice, single).
+wage_income(alice, 60000).
+
+age_65_or_over_flag(alice, 0).
+blind_flag(alice, 0).
+spouse_age_65_or_over_flag(alice, 0).
+spouse_blind_flag(alice, 0).
+
+// -------------------------
+// Example 2: Joan (single)
+// -------------------------
+//  - Single
+//  - Wages: 110,000
+//  - Under 65, not blind.
+
+filing_status(joan, single).
+wage_income(joan, 110000).
+
+age_65_or_over_flag(joan, 0).
+blind_flag(joan, 0).
+spouse_age_65_or_over_flag(joan, 0).
+spouse_blind_flag(joan, 0).
+
+// Expected values for Joan:
+//   AGI = 110,000
+//   Std. deduction (single, under 65, not blind) = 14,600
+//   Taxable income = 95,400
+//   Tax = 16,041
+
+expected_taxable_income(joan, 95400).
+expected_tax(joan, 16041).
+
+// Simple correctness check: does our model match the expected numbers?
+
+case_ok(?T) :-
+    expected_taxable_income(?T, ?ExpTI),
+    expected_tax(?T, ?ExpTax),
+    tax_summary(?T, _Status, _AGI, _SD, ?TI, ?Tax),
+    ?TI =:= ?ExpTI,
+    ?Tax =:= ?ExpTax.

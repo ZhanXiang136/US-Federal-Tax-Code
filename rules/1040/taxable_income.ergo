@@ -1,0 +1,19 @@
+// Taxable income computation.
+
+deduction_used(?T, ?Year, ?Ded) :-
+    tax_year(?Year),
+    standard_deduction(?T, ?Year, ?SD),
+    itemized_deduction(?T, ?Year, ?ID),
+    max2(?SD, ?ID, ?Ded).
+
+taxable_income(?T, ?Year, ?TI) :-
+    agi(?T, ?AGI),
+    deduction_used(?T, ?Year, ?Ded),
+    ?AGI =< ?Ded,
+    ?TI \is 0.
+
+taxable_income(?T, ?Year, ?TI) :-
+    agi(?T, ?AGI),
+    deduction_used(?T, ?Year, ?Ded),
+    ?AGI > ?Ded,
+    ?TI \is ?AGI - ?Ded.

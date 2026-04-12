@@ -1,0 +1,16 @@
+flora_symbol(expected_taxable_income,2,\@,129,37,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(filing_status,2,\@,20,8,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(alice,0,\@,22,8,function_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(spouse_age_65_or_over_flag,2,\@,52,13,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(tax_summary,6,\@,172,45,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(spouse_blind_flag,2,\@,60,14,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(single,0,\@,25,8,function_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(age_65_or_over_flag,2,\@,36,11,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(wage_income,2,\@,28,9,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(joan,0,\@,77,23,function_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(case_ok,1,\@,147,42,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(expected_tax,2,\@,137,38,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol('_Status',0,\@,177,45,function_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol('_AGI',0,\@,180,45,function_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol('_SD',0,\@,183,45,function_symbol,nontransactional_symbol,'examples_1040_2024.ergo').
+flora_symbol(blind_flag,2,\@,44,12,predicate_symbol,nontransactional_symbol,'examples_1040_2024.ergo').

@@ -1,0 +1,8 @@
+#include "flrheader.flh"
+#include "flr_fld_standardtypes.flh"
+
+#define FLORA_COMPILATION_ID 2
+
+FLORA_THIS_WORKSPACE(tblflapply)(line_explanation,__fldnewvar1,__fldnewvar2,__fldnewvar3,__fldnewvar4).
+FLORA_THIS_WORKSPACE(tblflapply)(line_value,__fldnewvar1,__fldnewvar2,__fldnewvar3,__fldnewvar4).
+FLORA_THIS_WORKSPACE(tblflapply)(tax_summary,__fldnewvar1,__fldnewvar2,__fldnewvar3,__fldnewvar4,__fldnewvar5,__fldnewvar6,__fldnewvar7,__fldnewvar8).

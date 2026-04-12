@@ -1,0 +1,102 @@
+// Summary view and line-by-line explanations.
+
+// tax_summary(T, Year, Status, AGI, StdDed, TaxableIncome, Tax).
+
+tax_summary(?T, ?Year, ?Status, ?AGI, ?SD, ?TI, ?Tax) :-
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    agi(?T, ?AGI),
+    standard_deduction(?T, ?Year, ?SD),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax).
+
+// Deterministic wrapper to avoid backtracking over multiple bracket solutions.
+tax_summary_det(?T, ?Year, ?Status, ?AGI, ?SD, ?TI, ?Tax) :-
+    tax_summary(?T, ?Year, ?Status, ?AGI, ?SD, ?TI, ?Tax),
+    !.
+
+// Line-value facade for explainability.
+
+line_value(?_T, 'tax_year', ?Year) :-
+    tax_year(?Year).
+
+line_explanation(?_T, 'tax_year',
+                 'Tax year is currently configured globally in rules/1040/config.ergo.') :-
+    tax_year(_).
+
+line_value(?T, 'filing_status', ?Status) :-
+    filing_status(?T, ?Status).
+
+line_explanation(?T, 'filing_status',
+                 'Filing status is taken from the taxpayer\'s declared filing_status fact.') :-
+    filing_status(?T, _).
+
+line_value(?T, 'agi', ?AGI) :-
+    agi(?T, ?AGI).
+
+line_explanation(?T, 'agi',
+                 'Adjusted Gross Income (AGI) equals total income minus adjustments (floored at 0).') :-
+    agi(?T, _).
+
+line_value(?T, 'total_income', ?Total) :-
+    income_sum(?T, ?Total).
+
+line_explanation(?T, 'total_income',
+                 'Total income aggregates all provided income sources (wages, interest, dividends, gains, business, rentals, royalties, farm, refunds, alimony, social security, unemployment, other).') :-
+    income_sum(?T, _).
+
+line_value(?T, 'adjustments_total', ?Adj) :-
+    adjustment_sum(?T, ?Adj).
+
+line_explanation(?T, 'adjustments_total',
+                 'Adjustments total aggregates deductible adjustments from Schedule 1 inputs (if provided).') :-
+    adjustment_sum(?T, _).
+
+line_value(?T, 'itemized_deduction', ?ID) :-
+    tax_year(?Year),
+    itemized_deduction(?T, ?Year, ?ID).
+
+line_explanation(?T, 'itemized_deduction',
+                 'Itemized deduction aggregates deductible Schedule A components (medical above floor, SALT capped, mortgage interest, charitable, casualty, other) when provided.') :-
+    tax_year(?Year),
+    itemized_deduction(?T, ?Year, _).
+
+line_value(?T, 'deduction_used', ?Ded) :-
+    tax_year(?Year),
+    deduction_used(?T, ?Year, ?Ded).
+
+line_explanation(?T, 'deduction_used',
+                 'Deduction used is the larger of standard deduction and itemized deduction.') :-
+    tax_year(?Year),
+    deduction_used(?T, ?Year, _).
+
+line_value(?T, 'standard_deduction', ?SD) :-
+    tax_year(?Year),
+    standard_deduction(?T, ?Year, ?SD).
+
+line_explanation(?T, 'standard_deduction',
+                 'The standard deduction equals the basic amount for the filing status plus any additional amount for age 65+ and/or blindness (traditional additional standard deduction only).') :-
+    tax_year(?Year),
+    standard_deduction(?T, ?Year, _).
+
+line_value(?T, 'taxable_income', ?TI) :-
+    tax_year(?Year),
+    taxable_income(?T, ?Year, ?TI).
+
+line_explanation(?T, 'taxable_income',
+                 'Taxable income is AGI minus the deduction used (max of standard vs itemized), floored at 0 if deductions exceed AGI.') :-
+    tax_year(?Year),
+    taxable_income(?T, ?Year, _).
+
+line_value(?T, 'tax_liability', ?Tax) :-
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax).
+
+line_explanation(?T, 'tax_liability',
+                 'Tax liability is computed using the progressive tax brackets for the taxpayer\'s filing status.') :-
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, _).

@@ -1,0 +1,169 @@
+// Itemized deductions (Schedule A) for tax year 2025.
+
+// Inputs (amounts are deductible amounts unless stated otherwise):
+// medical_expenses(T, Amount).
+// state_local_income_taxes(T, Amount).
+// state_local_sales_taxes(T, Amount).
+// real_estate_taxes(T, Amount).
+// personal_property_taxes(T, Amount).
+// mortgage_interest(T, Amount).
+// charitable_cash(T, Amount).
+// charitable_noncash(T, Amount).
+// casualty_losses(T, Amount).
+// other_itemized(T, Amount).
+
+// Policy parameters (year-specific):
+// medical_floor_pct(Year, Pct).
+// salt_cap(Year, Cap).
+
+medical_floor_pct(2025, 0.075).
+salt_cap(2025, 10000).
+
+// Helpers.
+
+min2(?A, ?B, ?Min) :-
+    ?A =< ?B,
+    ?Min \is ?A.
+
+min2(?A, ?B, ?Min) :-
+    ?A > ?B,
+    ?Min \is ?B.
+
+max2(?A, ?B, ?Max) :-
+    ?A >= ?B,
+    ?Max \is ?A.
+
+max2(?A, ?B, ?Max) :-
+    ?A < ?B,
+    ?Max \is ?B.
+
+// Medical deduction subject to AGI floor.
+
+medical_deduction(?T, ?Year, ?Ded) :-
+    medical_expenses(?T, ?Med),
+    agi(?T, ?AGI),
+    medical_floor_pct(?Year, ?Pct),
+    ?Floor \is ?AGI * ?Pct,
+    ?Temp \is ?Med - ?Floor,
+    max2(?Temp, 0, ?Ded).
+
+medical_deduction(?T, _Year, 0) :-
+    \+ medical_expenses(?T, _).
+
+// SALT deduction with cap.
+
+salt_total(?T, ?Total) :-
+    state_local_income_taxes(?T, ?Inc),
+    ?Total \is ?Inc.
+
+salt_total(?T, ?Total) :-
+    state_local_sales_taxes(?T, ?Sales),
+    ?Total \is ?Sales.
+
+salt_total(?T, ?Total) :-
+    real_estate_taxes(?T, ?RE),
+    ?Total \is ?RE.
+
+salt_total(?T, ?Total) :-
+    personal_property_taxes(?T, ?PP),
+    ?Total \is ?PP.
+
+salt_deduction(?T, ?Year, ?Ded) :-
+    salt_income_or_zero(?T, ?Inc),
+    salt_sales_or_zero(?T, ?Sales),
+    salt_re_or_zero(?T, ?RE),
+    salt_pp_or_zero(?T, ?PP),
+    ?Total \is ?Inc + ?Sales + ?RE + ?PP,
+    salt_cap(?Year, ?Cap),
+    min2(?Total, ?Cap, ?Ded).
+
+salt_income_or_zero(?T, ?Inc) :-
+    state_local_income_taxes(?T, ?Inc).
+salt_income_or_zero(?T, 0) :-
+    \+ state_local_income_taxes(?T, _).
+
+salt_sales_or_zero(?T, ?Sales) :-
+    state_local_sales_taxes(?T, ?Sales).
+salt_sales_or_zero(?T, 0) :-
+    \+ state_local_sales_taxes(?T, _).
+
+salt_re_or_zero(?T, ?RE) :-
+    real_estate_taxes(?T, ?RE).
+salt_re_or_zero(?T, 0) :-
+    \+ real_estate_taxes(?T, _).
+
+salt_pp_or_zero(?T, ?PP) :-
+    personal_property_taxes(?T, ?PP).
+salt_pp_or_zero(?T, 0) :-
+    \+ personal_property_taxes(?T, _).
+
+// Itemized total (components that are provided).
+
+itemized_component(?T, ?Year, ?Amt) :-
+    medical_deduction(?T, ?Year, ?Amt).
+
+itemized_component(?T, ?Year, ?Amt) :-
+    salt_deduction(?T, ?Year, ?Amt).
+
+itemized_component(?T, _Year, ?Amt) :-
+    mortgage_interest(?T, ?Amt).
+
+itemized_component(?T, _Year, ?Amt) :-
+    charitable_cash(?T, ?Amt).
+
+itemized_component(?T, _Year, ?Amt) :-
+    charitable_noncash(?T, ?Amt).
+
+itemized_component(?T, _Year, ?Amt) :-
+    casualty_losses(?T, ?Amt).
+
+itemized_component(?T, _Year, ?Amt) :-
+    other_itemized(?T, ?Amt).
+
+itemized_deduction(?T, ?Year, ?Total) :-
+    tax_year(?Year),
+    medical_or_zero(?T, ?Year, ?Med),
+    salt_or_zero(?T, ?Year, ?Salt),
+    mortgage_interest_or_zero(?T, ?MI),
+    charitable_cash_or_zero(?T, ?CC),
+    charitable_noncash_or_zero(?T, ?CNC),
+    casualty_losses_or_zero(?T, ?Cas),
+    other_itemized_or_zero(?T, ?Other),
+    ?Total \is ?Med + ?Salt + ?MI + ?CC + ?CNC + ?Cas + ?Other.
+
+medical_or_zero(?T, ?Year, ?Amt) :-
+    medical_deduction(?T, ?Year, ?Amt).
+medical_or_zero(?T, ?Year, 0) :-
+    tax_year(?Year),
+    \+ medical_deduction(?T, ?Year, _).
+
+salt_or_zero(?T, ?Year, ?Amt) :-
+    salt_deduction(?T, ?Year, ?Amt).
+salt_or_zero(?T, ?Year, 0) :-
+    tax_year(?Year),
+    \+ salt_deduction(?T, ?Year, _).
+
+mortgage_interest_or_zero(?T, ?Amt) :-
+    mortgage_interest(?T, ?Amt).
+mortgage_interest_or_zero(?T, 0) :-
+    \+ mortgage_interest(?T, _).
+
+charitable_cash_or_zero(?T, ?Amt) :-
+    charitable_cash(?T, ?Amt).
+charitable_cash_or_zero(?T, 0) :-
+    \+ charitable_cash(?T, _).
+
+charitable_noncash_or_zero(?T, ?Amt) :-
+    charitable_noncash(?T, ?Amt).
+charitable_noncash_or_zero(?T, 0) :-
+    \+ charitable_noncash(?T, _).
+
+casualty_losses_or_zero(?T, ?Amt) :-
+    casualty_losses(?T, ?Amt).
+casualty_losses_or_zero(?T, 0) :-
+    \+ casualty_losses(?T, _).
+
+other_itemized_or_zero(?T, ?Amt) :-
+    other_itemized(?T, ?Amt).
+other_itemized_or_zero(?T, 0) :-
+    \+ other_itemized(?T, _).

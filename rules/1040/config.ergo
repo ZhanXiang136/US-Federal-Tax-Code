@@ -1,0 +1,4 @@
+// Global configuration for the 1040 ruleset.
+// Update tax_year/1 when adding a new year-specific data folder.
+
+tax_year(2025).

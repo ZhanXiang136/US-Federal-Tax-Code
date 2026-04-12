@@ -1,0 +1,12 @@
+#include "flrheader.flh"
+#define FLORA_COMPILATION_ID 3
+
+
+'_$_$_ergo''prop_descriptor'(4,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME,type,rule,'_$_$_ergo''descr_vars').
+'_$_$_ergo''tag_descriptor'(4,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME,4,'_$_$_ergo''descr_vars').
+'_$_$_ergo''rule_enabled'(4,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME).
+'_$_$_ergo''bool_descriptor'(4,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME,strict,'_$_$_ergo''descr_vars').
+'_$_$_ergo''prop_descriptor'(6,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME,type,rule,'_$_$_ergo''descr_vars').
+'_$_$_ergo''tag_descriptor'(6,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME,6,'_$_$_ergo''descr_vars').
+'_$_$_ergo''rule_enabled'(6,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME).
+'_$_$_ergo''bool_descriptor'(6,'examples_2025_basic.ergo',FLORA_THIS_MODULE_NAME,strict,'_$_$_ergo''descr_vars').

@@ -1,0 +1,31 @@
+// AGI-focused examples for 2025 (income + adjustments coverage).
+
+// Example: Dana (single)
+//  - Wages: 80,000
+//  - Interest: 500
+//  - Dividends: 300
+//  - Capital gains: 1,200
+//  - Unemployment: 0
+//  - Adjustments: IRA 2,000; HSA 1,000
+// Expected AGI = 80,000 + 500 + 300 + 1,200 - 2,000 - 1,000 = 79,000
+
+filing_status(dana, single).
+wage_income(dana, 80000).
+taxable_interest_income(dana, 500).
+ordinary_dividends(dana, 300).
+capital_gains(dana, 1200).
+
+ira_deduction(dana, 2000).
+hsa_deduction(dana, 1000).
+
+age_65_or_over_flag(dana, 0).
+blind_flag(dana, 0).
+spouse_age_65_or_over_flag(dana, 0).
+spouse_blind_flag(dana, 0).
+
+expected_agi(dana, 79000).
+
+agi_case_ok(?T) :-
+    expected_agi(?T, ?ExpAGI),
+    agi(?T, ?AGI),
+    ?AGI =:= ?ExpAGI.

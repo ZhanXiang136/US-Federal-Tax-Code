@@ -1,0 +1,5 @@
+%% #include info for source file: /Users/z/Desktop/Coherent/Honor Thesis/tests/examples_2025_agi.ergo
+
+
+:-(multifile(/('_$_$_ergo''include_prj_info',2))).
+'_$_$_ergo''include_prj_info'('/Users/z/Desktop/Coherent/Honor Thesis/tests/examples_2025_agi.ergo',null).

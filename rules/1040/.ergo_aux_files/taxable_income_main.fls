@@ -1,0 +1,6 @@
+flora_symbol(agi,2,\@,76,9,predicate_symbol,nontransactional_symbol,'taxable_income.ergo').
+flora_symbol(taxable_income,3,\@,63,8,predicate_symbol,nontransactional_symbol,'taxable_income.ergo').
+flora_symbol(max2,3,\@,52,6,predicate_symbol,nontransactional_symbol,'taxable_income.ergo').
+flora_symbol(itemized_deduction,3,\@,40,5,predicate_symbol,nontransactional_symbol,'taxable_income.ergo').
+flora_symbol(standard_deduction,3,\@,28,4,predicate_symbol,nontransactional_symbol,'taxable_income.ergo').
+flora_symbol(deduction_used,3,\@,15,3,predicate_symbol,nontransactional_symbol,'taxable_income.ergo').

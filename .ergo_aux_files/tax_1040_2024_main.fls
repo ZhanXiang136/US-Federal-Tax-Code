@@ -1,0 +1,33 @@
+flora_symbol(line_value,3,\@,2874,370,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(standard_deduction,0,\@,2963,384,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(standard_deduction,3,\@,327,92,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(additional_standard_deduction,3,\@,272,84,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(spouse_blind_flag,2,\@,243,79,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(blind_flag,2,\@,225,77,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol('Taxable income is AGI minus the standard deduction, floored at 0 if the deduction is larger than AGI.',0,\@,3035,395,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(line_explanation,3,\@,2895,373,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(base_standard_deduction,3,\@,85,52,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol('Tax liability is computed using the progressive 2025 tax brackets for the taxpayer''s filing status.',0,\@,3101,404,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol('_',0,\@,2913,375,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(taxable_income,0,\@,3011,391,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(taxable_income,2,\@,387,102,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(age_65_or_over_flag,2,\@,216,76,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(agi,0,\@,2921,377,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(agi,2,\@,50,38,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol('Filing status is taken from the taxpayer''s declared filing_status fact.',0,\@,2903,374,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(married_filing_jointly,0,\@,112,54,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(head_of_household,0,\@,134,56,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(tax_liability,0,\@,3053,398,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(tax_liability,4,\@,505,140,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(qualifying_surviving_spouse,0,\@,123,55,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(qualifier_count,2,\@,206,75,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(wage_income,2,\@,60,39,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(married_filing_separately,0,\@,101,53,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(spouse_age_65_or_over_flag,2,\@,234,78,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(per_qualifier_additional_amount,3,\@,149,67,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol('The standard deduction equals the 2025 basic amount for the filing status plus any additional amount for age 65+ and/or blindness (traditional additional standard deduction only).',0,\@,2990,388,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol('Adjusted Gross Income (AGI) is currently computed as total wage income only (prototype).',0,\@,2945,381,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(tax_summary,6,\@,2791,355,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(filing_status,0,\@,2879,370,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(filing_status,2,\@,285,85,predicate_symbol,nontransactional_symbol,'tax_1040_2024.ergo').
+flora_symbol(single,0,\@,90,52,function_symbol,nontransactional_symbol,'tax_1040_2024.ergo').

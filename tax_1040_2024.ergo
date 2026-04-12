@@ -1,0 +1,407 @@
+// Core rules for Form 1040 (2025):
+// filing status → standard deduction (incl. 65+/blind) → AGI → taxable income → tax liability.
+//
+// This is a simplified 1040 pipeline for tax year 2025 (returns filed in 2026).
+
+// --------------------------------------------------------
+// 1. INPUT PREDICATES 
+// --------------------------------------------------------
+//
+// filing_status(Taxpayer, Status).
+//   Status ∈ { single
+//             , married_filing_jointly
+//             , married_filing_separately
+//             , head_of_household
+//             , qualifying_surviving_spouse }.
+//
+// wage_income(Taxpayer, Amount).
+//   For now, AGI = wage income only (no other income sources yet).
+//
+// Age / blindness flags for additional standard deduction:
+//
+//   age_65_or_over_flag(T, 0 or 1).
+//   blind_flag(T,           0 or 1).
+//   spouse_age_65_or_over_flag(T, 0 or 1).   % relevant for MFJ / MFS / QSS
+//   spouse_blind_flag(T,               0 or 1).
+//
+// Convention:
+//   - For Single / Head of Household, just set the spouse_* flags to 0.
+//   - For MFJ, MFS, QSS, you can set all four flags appropriately.
+//   - Each flag is 1 if that condition is true, 0 otherwise.
+
+// ------------------------
+// 2. ADJUSTED GROSS INCOME
+// ------------------------
+//
+// Prototype: AGI = wage income only.
+
+agi(?T, ?AGI) :-
+    wage_income(?T, ?Wages),
+    ?AGI \is ?Wages.
+
+// ---------------------------------------------
+// 3. STANDARD DEDUCTION (BASIC + ADDITIONAL)
+// ---------------------------------------------
+//
+// 3.1 Basic standard deduction amounts, 2025
+// 2025 standard deduction under OBBB + inflation:
+//   - $15,750  Single or MFS
+//   - $31,500  MFJ / QSS
+//   - $23,625  Head of Household
+
+base_standard_deduction(2025, single,                      15750).
+base_standard_deduction(2025, married_filing_separately,   15750).
+base_standard_deduction(2025, married_filing_jointly,      31500).
+base_standard_deduction(2025, qualifying_surviving_spouse, 31500).
+base_standard_deduction(2025, head_of_household,           23625).
+
+// 3.2 Additional standard deduction for age 65+ / blind (2025)
+//
+// 2025 inflation-adjusted "traditional" additional standard deduction (per qualifier):
+//   - Single or Head of Household: $2,000 per age 65+ or blind
+//   - Married / QSS:               $1,600 per age 65+ or blind
+//
+// NOTE: This does NOT include the new OBBB "extra $6,000 senior deduction"
+// with MAGI-based phaseouts. That will be modeled SEPARATELY
+
+per_qualifier_additional_amount(2025, single,                      2000).
+per_qualifier_additional_amount(2025, head_of_household,           2000).
+per_qualifier_additional_amount(2025, married_filing_jointly,      1600).
+per_qualifier_additional_amount(2025, married_filing_separately,   1600).
+per_qualifier_additional_amount(2025, qualifying_surviving_spouse, 1600).
+
+// Helper: count number of age/blind qualifiers on the return (0–4).
+
+qualifier_count(?T, ?Count) :-
+    age_65_or_over_flag(?T,           ?SelfAge),
+    blind_flag(?T,                    ?SelfBlind),
+    spouse_age_65_or_over_flag(?T,    ?SpouseAge),
+    spouse_blind_flag(?T,             ?SpouseBlind),
+    ?Count \is ?SelfAge + ?SelfBlind + ?SpouseAge + ?SpouseBlind.
+
+// Additional standard deduction for 2025.
+
+additional_standard_deduction(?T, 2025, ?Extra) :-
+    filing_status(?T, ?Status),
+    per_qualifier_additional_amount(2025, ?Status, ?PerQual),
+    qualifier_count(?T, ?Count),
+    ?Extra \is ?PerQual * ?Count.
+
+// 3.3 Full standard deduction = base + additional (age/blind).
+
+standard_deduction(?T, 2025, ?Amount) :-
+    filing_status(?T, ?Status),
+    base_standard_deduction(2025, ?Status, ?Base),
+    additional_standard_deduction(?T, 2025, ?Extra),
+    ?Amount \is ?Base + ?Extra.
+
+// ------------------------
+// 4. TAXABLE INCOME
+// ------------------------
+
+taxable_income(?T, ?TI) :-
+    agi(?T, ?AGI),
+    standard_deduction(?T, 2025, ?SD),
+    ?AGI =< ?SD,
+    ?TI \is 0.
+
+taxable_income(?T, ?TI) :-
+    agi(?T, ?AGI),
+    standard_deduction(?T, 2025, ?SD),
+    ?AGI > ?SD,
+    ?TI \is ?AGI - ?SD.
+
+// ======================================================
+// 5. TAX LIABILITY: 2025 BRACKETS FOR ALL STATUSES
+// ======================================================
+//
+// Brackets by status (2025):
+//   SINGLE:                     10%: 0–11,925; 12%: 11,926–48,475; 22%: 48,476–103,350;
+//                               24%: 103,351–197,300; 32%: 197,301–250,525;
+//                               35%: 250,526–626,350; 37%: 626,351+
+//
+//   MARRIED FILING JOINTLY / QUALIFYING SURVIVING SPOUSE:
+//                               10%: 0–23,850; 12%: 23,851–96,950; 22%: 96,951–206,700;
+//                               24%: 206,701–394,600; 32%: 394,601–501,050;
+//                               35%: 501,051–751,600; 37%: 751,601+
+//
+//   MARRIED FILING SEPARATELY:  Same thresholds as Single, except top 35%/37% split at
+//                               375,800:
+//                               10%: 0–11,925; 12%: 11,926–48,475; 22%: 48,476–103,350;
+//                               24%: 103,351–197,300; 32%: 197,301–250,525;
+//                               35%: 250,526–375,800; 37%: 375,801+
+//
+//   HEAD OF HOUSEHOLD:          10%: 0–17,000; 12%: 17,001–64,850; 22%: 64,851–103,350;
+//                               24%: 103,351–197,300; 32%: 197,301–250,500;
+//                               35%: 250,501–626,350; 37%: 626,351+
+
+// ---------- 5.1 SINGLE (2025) ----------
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI =< 11925,
+    ?Tax \is 0.10 * ?TI.
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 11925, ?TI =< 48475,
+    ?Tax \is 11925 * 0.10
+             + 0.12 * (?TI - 11925).
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 48475, ?TI =< 103350,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + 0.22 * (?TI - 48475).
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 103350, ?TI =< 197300,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + 0.24 * (?TI - 103350).
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 197300, ?TI =< 250525,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + (197300 - 103350) * 0.24
+             + 0.32 * (?TI - 197300).
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 250525, ?TI =< 626350,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + (197300 - 103350) * 0.24
+             + (250525 - 197300) * 0.32
+             + 0.35 * (?TI - 250525).
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 626350,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + (197300 - 103350) * 0.24
+             + (250525 - 197300) * 0.32
+             + (626350 - 250525) * 0.35
+             + 0.37 * (?TI - 626350).
+
+// ---------- 5.2 MARRIED FILING JOINTLY / QSS (2025) ----------
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI =< 23850,
+    ?Tax \is 0.10 * ?TI.
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 23850, ?TI =< 96950,
+    ?Tax \is 23850 * 0.10
+             + 0.12 * (?TI - 23850).
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 96950, ?TI =< 206700,
+    ?Tax \is 23850 * 0.10
+             + (96950 - 23850) * 0.12
+             + 0.22 * (?TI - 96950).
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 206700, ?TI =< 394600,
+    ?Tax \is 23850 * 0.10
+             + (96950 - 23850) * 0.12
+             + (206700 - 96950) * 0.22
+             + 0.24 * (?TI - 206700).
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 394600, ?TI =< 501050,
+    ?Tax \is 23850 * 0.10
+             + (96950 - 23850) * 0.12
+             + (206700 - 96950) * 0.22
+             + (394600 - 206700) * 0.24
+             + 0.32 * (?TI - 394600).
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 501050, ?TI =< 751600,
+    ?Tax \is 23850 * 0.10
+             + (96950 - 23850) * 0.12
+             + (206700 - 96950) * 0.22
+             + (394600 - 206700) * 0.24
+             + (501050 - 394600) * 0.32
+             + 0.35 * (?TI - 501050).
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 751600,
+    ?Tax \is 23850 * 0.10
+             + (96950 - 23850) * 0.12
+             + (206700 - 96950) * 0.22
+             + (394600 - 206700) * 0.24
+             + (501050 - 394600) * 0.32
+             + (751600 - 501050) * 0.35
+             + 0.37 * (?TI - 751600).
+
+// Qualifying surviving spouse shares the MFJ brackets.
+
+tax_liability(2025, qualifying_surviving_spouse, ?TI, ?Tax) :-
+    tax_liability(2025, married_filing_jointly, ?TI, ?Tax).
+
+// ---------- 5.3 MARRIED FILING SEPARATELY (2025) ----------
+//
+// Same structure as Single, but different 35%/37% break at 375,800.
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI =< 11925,
+    ?Tax \is 0.10 * ?TI.
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 11925, ?TI =< 48475,
+    ?Tax \is 11925 * 0.10
+             + 0.12 * (?TI - 11925).
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 48475, ?TI =< 103350,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + 0.22 * (?TI - 48475).
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 103350, ?TI =< 197300,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + 0.24 * (?TI - 103350).
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 197300, ?TI =< 250525,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + (197300 - 103350) * 0.24
+             + 0.32 * (?TI - 197300).
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 250525, ?TI =< 375800,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + (197300 - 103350) * 0.24
+             + (250525 - 197300) * 0.32
+             + 0.35 * (?TI - 250525).
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 375800,
+    ?Tax \is 11925 * 0.10
+             + (48475 - 11925) * 0.12
+             + (103350 - 48475) * 0.22
+             + (197300 - 103350) * 0.24
+             + (250525 - 197300) * 0.32
+             + (375800 - 250525) * 0.35
+             + 0.37 * (?TI - 375800).
+
+// ---------- 5.4 HEAD OF HOUSEHOLD (2025) ----------
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI =< 17000,
+    ?Tax \is 0.10 * ?TI.
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 17000, ?TI =< 64850,
+    ?Tax \is 17000 * 0.10
+             + 0.12 * (?TI - 17000).
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 64850, ?TI =< 103350,
+    ?Tax \is 17000 * 0.10
+             + (64850 - 17000) * 0.12
+             + 0.22 * (?TI - 64850).
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 103350, ?TI =< 197300,
+    ?Tax \is 17000 * 0.10
+             + (64850 - 17000) * 0.12
+             + (103350 - 64850) * 0.22
+             + 0.24 * (?TI - 103350).
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 197300, ?TI =< 250500,
+    ?Tax \is 17000 * 0.10
+             + (64850 - 17000) * 0.12
+             + (103350 - 64850) * 0.22
+             + (197300 - 103350) * 0.24
+             + 0.32 * (?TI - 197300).
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 250500, ?TI =< 626350,
+    ?Tax \is 17000 * 0.10
+             + (64850 - 17000) * 0.12
+             + (103350 - 64850) * 0.22
+             + (197300 - 103350) * 0.24
+             + (250500 - 197300) * 0.32
+             + 0.35 * (?TI - 250500).
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 626350,
+    ?Tax \is 17000 * 0.10
+             + (64850 - 17000) * 0.12
+             + (103350 - 64850) * 0.22
+             + (197300 - 103350) * 0.24
+             + (250500 - 197300) * 0.32
+             + (626350 - 250500) * 0.35
+             + 0.37 * (?TI - 626350).
+
+// ---------------------------------------------
+// 6. HIGH-LEVEL SUMMARY VIEW FOR A TAXPAYER
+// ---------------------------------------------
+//
+// tax_summary(T, Status, AGI, StdDed, TaxableIncome, Tax).
+
+tax_summary(?T, ?Status, ?AGI, ?SD, ?TI, ?Tax) :-
+    filing_status(?T, ?Status),
+    agi(?T, ?AGI),
+    standard_deduction(?T, 2025, ?SD),
+    taxable_income(?T, ?TI),
+    tax_liability(2025, ?Status, ?TI, ?Tax).
+
+// -----------------------------------------------------
+// 7. LINE-BY-LINE VALUES AND HUMAN-READABLE EXPLANATIONS
+// -----------------------------------------------------
+//
+// You can query:
+//   line_value(T, 'taxable_income', V).
+//   line_explanation(T, 'taxable_income', Why).
+
+line_value(?T, 'filing_status', ?Status) :-
+    filing_status(?T, ?Status).
+
+line_explanation(?T, 'filing_status',
+                 'Filing status is taken from the taxpayer''s declared filing_status fact.') :-
+    filing_status(?T, _).
+
+line_value(?T, 'agi', ?AGI) :-
+    agi(?T, ?AGI).
+
+line_explanation(?T, 'agi',
+                 'Adjusted Gross Income (AGI) is currently computed as total wage income only (prototype).') :-
+    agi(?T, _).
+
+line_value(?T, 'standard_deduction', ?SD) :-
+    standard_deduction(?T, 2025, ?SD).
+
+line_explanation(?T, 'standard_deduction',
+                 'The standard deduction equals the 2025 basic amount for the filing status plus any additional amount for age 65+ and/or blindness (traditional additional standard deduction only).') :-
+    standard_deduction(?T, 2025, _).
+
+line_value(?T, 'taxable_income', ?TI) :-
+    taxable_income(?T, ?TI).
+
+line_explanation(?T, 'taxable_income',
+                 'Taxable income is AGI minus the standard deduction, floored at 0 if the deduction is larger than AGI.') :-
+    taxable_income(?T, _).
+
+line_value(?T, 'tax_liability', ?Tax) :-
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?TI),
+    tax_liability(2025, ?Status, ?TI, ?Tax).
+
+line_explanation(?T, 'tax_liability',
+                 'Tax liability is computed using the progressive 2025 tax brackets for the taxpayer''s filing status.') :-
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?TI),
+    tax_liability(2025, ?Status, ?TI, _).

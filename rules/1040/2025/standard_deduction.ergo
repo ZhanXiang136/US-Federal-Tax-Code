@@ -1,0 +1,44 @@
+// Standard deduction rules for tax year 2025.
+
+// 2025 standard deduction under OBBB + inflation:
+//   - $15,750  Single or MFS
+//   - $31,500  MFJ / QSS
+//   - $23,625  Head of Household
+
+base_standard_deduction(2025, single,                      15750).
+base_standard_deduction(2025, married_filing_separately,   15750).
+base_standard_deduction(2025, married_filing_jointly,      31500).
+base_standard_deduction(2025, qualifying_surviving_spouse, 31500).
+base_standard_deduction(2025, head_of_household,           23625).
+
+// Additional standard deduction for age 65+ / blind (2025)
+//   - Single or Head of Household: $2,000 per qualifier
+//   - Married / QSS:               $1,600 per qualifier
+// Note: excludes any separate senior add-on deduction.
+
+per_qualifier_additional_amount(2025, single,                      2000).
+per_qualifier_additional_amount(2025, head_of_household,           2000).
+per_qualifier_additional_amount(2025, married_filing_jointly,      1600).
+per_qualifier_additional_amount(2025, married_filing_separately,   1600).
+per_qualifier_additional_amount(2025, qualifying_surviving_spouse, 1600).
+
+// Helper: count age/blind qualifiers on the return (0–4).
+
+qualifier_count(?T, ?Count) :-
+    age_65_or_over_flag(?T,           ?SelfAge),
+    blind_flag(?T,                    ?SelfBlind),
+    spouse_age_65_or_over_flag(?T,    ?SpouseAge),
+    spouse_blind_flag(?T,             ?SpouseBlind),
+    ?Count \is ?SelfAge + ?SelfBlind + ?SpouseAge + ?SpouseBlind.
+
+additional_standard_deduction(?T, 2025, ?Extra) :-
+    filing_status(?T, ?Status),
+    per_qualifier_additional_amount(2025, ?Status, ?PerQual),
+    qualifier_count(?T, ?Count),
+    ?Extra \is ?PerQual * ?Count.
+
+standard_deduction(?T, 2025, ?Amount) :-
+    filing_status(?T, ?Status),
+    base_standard_deduction(2025, ?Status, ?Base),
+    additional_standard_deduction(?T, 2025, ?Extra),
+    ?Amount \is ?Base + ?Extra.
