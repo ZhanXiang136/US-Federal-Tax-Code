@@ -1,29 +1,28 @@
 ErgoAI 1040 Roadmap
 
-Phase 1: Core pipeline (complete in this repo)
-- Filing status
-- Wage-only AGI
-- Standard deduction
-- Taxable income
-- 2025 tax brackets
-- Line-by-line explanations for the core pipeline
+Current state (implemented)
+- Filing status represented as input facts
+- Multi-source AGI with adjustments to income
+- 2025 standard deduction logic, including age/blind add-ons
+- 2025 itemized deductions for medical, SALT, mortgage interest, charitable giving, casualty losses, and other itemized inputs
+- Taxable income using the larger of standard vs. itemized deduction
+- 2025 ordinary income tax brackets for all filing statuses
+- Summary predicates and line-by-line explanations
+- Example-based tests for baseline, AGI, itemized-deduction, and explainability scenarios
 
-Phase 2: Income and adjustments
-- Additional income sources (interest, dividends, capital gains, business income)
-- Adjustments to income (educator expenses, IRA deductions, etc.)
-- Expanded AGI rules and Schedule 1 integration
+Next priorities
+- Credits: Child Tax Credit, Earned Income Tax Credit, and education credits
+- Payments and settlement: withholding, estimated tax payments, refund, and amount due
+- Broader schedule coverage and more explicit source tracing for each rule
+- Cleaner multi-year support so adding a new year does not require editing the Python loader
 
-Phase 3: Deductions and credits
-- Itemized deductions (Schedule A) with SALT cap, mortgage interest, and charitable contributions
-- Child Tax Credit and Earned Income Tax Credit with phase-outs
-- Education credits (AOTC, LLC)
-
-Phase 4: Payments, refunds, and audits
-- Withholding and estimated tax payments
-- Refund/amount due computation
-- Explanation traces and counterfactual explanations
+Stretch priorities
+- Counterfactual explanations such as "Why did I not qualify?"
+- Additional schedules and exception-heavy subdomains
+- Comparative evaluation against other rule-based or logic-based systems
 
 Evaluation plan
-- Build 50–100 test cases derived from IRS worked examples and edge cases
-- Compare expected vs. computed line values and explanations
-- Track coverage by form line and rule source
+- Build 50-100 test cases from IRS worked examples and edge cases
+- Check expected vs. computed line values and explanation availability
+- Track coverage by major 1040 computation stage
+- Document assumptions, omissions, and unsupported rules explicitly

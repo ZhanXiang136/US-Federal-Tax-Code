@@ -78,22 +78,26 @@ salt_deduction(?T, ?Year, ?Ded) :-
     min2(?Total, ?Cap, ?Ded).
 
 salt_income_or_zero(?T, ?Inc) :-
-    state_local_income_taxes(?T, ?Inc).
+    state_local_income_taxes(?T, ?Inc),
+    !.
 salt_income_or_zero(?T, 0) :-
     \+ state_local_income_taxes(?T, _).
 
 salt_sales_or_zero(?T, ?Sales) :-
-    state_local_sales_taxes(?T, ?Sales).
+    state_local_sales_taxes(?T, ?Sales),
+    !.
 salt_sales_or_zero(?T, 0) :-
     \+ state_local_sales_taxes(?T, _).
 
 salt_re_or_zero(?T, ?RE) :-
-    real_estate_taxes(?T, ?RE).
+    real_estate_taxes(?T, ?RE),
+    !.
 salt_re_or_zero(?T, 0) :-
     \+ real_estate_taxes(?T, _).
 
 salt_pp_or_zero(?T, ?PP) :-
-    personal_property_taxes(?T, ?PP).
+    personal_property_taxes(?T, ?PP),
+    !.
 salt_pp_or_zero(?T, 0) :-
     \+ personal_property_taxes(?T, _).
 
@@ -132,38 +136,45 @@ itemized_deduction(?T, ?Year, ?Total) :-
     ?Total \is ?Med + ?Salt + ?MI + ?CC + ?CNC + ?Cas + ?Other.
 
 medical_or_zero(?T, ?Year, ?Amt) :-
-    medical_deduction(?T, ?Year, ?Amt).
+    medical_deduction(?T, ?Year, ?Amt),
+    !.
 medical_or_zero(?T, ?Year, 0) :-
     tax_year(?Year),
     \+ medical_deduction(?T, ?Year, _).
 
 salt_or_zero(?T, ?Year, ?Amt) :-
-    salt_deduction(?T, ?Year, ?Amt).
+    salt_deduction(?T, ?Year, ?Amt),
+    !.
 salt_or_zero(?T, ?Year, 0) :-
     tax_year(?Year),
     \+ salt_deduction(?T, ?Year, _).
 
 mortgage_interest_or_zero(?T, ?Amt) :-
-    mortgage_interest(?T, ?Amt).
+    mortgage_interest(?T, ?Amt),
+    !.
 mortgage_interest_or_zero(?T, 0) :-
     \+ mortgage_interest(?T, _).
 
 charitable_cash_or_zero(?T, ?Amt) :-
-    charitable_cash(?T, ?Amt).
+    charitable_cash(?T, ?Amt),
+    !.
 charitable_cash_or_zero(?T, 0) :-
     \+ charitable_cash(?T, _).
 
 charitable_noncash_or_zero(?T, ?Amt) :-
-    charitable_noncash(?T, ?Amt).
+    charitable_noncash(?T, ?Amt),
+    !.
 charitable_noncash_or_zero(?T, 0) :-
     \+ charitable_noncash(?T, _).
 
 casualty_losses_or_zero(?T, ?Amt) :-
-    casualty_losses(?T, ?Amt).
+    casualty_losses(?T, ?Amt),
+    !.
 casualty_losses_or_zero(?T, 0) :-
     \+ casualty_losses(?T, _).
 
 other_itemized_or_zero(?T, ?Amt) :-
-    other_itemized(?T, ?Amt).
+    other_itemized(?T, ?Amt),
+    !.
 other_itemized_or_zero(?T, 0) :-
     \+ other_itemized(?T, _).

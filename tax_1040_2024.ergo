@@ -1,7 +1,6 @@
-// Core rules for Form 1040 (2025):
-// filing status → standard deduction (incl. 65+/blind) → AGI → taxable income → tax liability.
-//
-// This is a simplified 1040 pipeline for tax year 2025 (returns filed in 2026).
+// Legacy standalone prototype retained for reference.
+// Despite the filename, this file models a simplified 2025 pipeline and is not
+// loaded by the current modular ruleset in rules/1040/.
 
 // --------------------------------------------------------
 // 1. INPUT PREDICATES 
