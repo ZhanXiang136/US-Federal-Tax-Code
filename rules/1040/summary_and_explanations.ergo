@@ -3,6 +3,9 @@
 // tax_summary(T, Year, Status, AGI, StdDed, TaxableIncome, Tax).
 // tax_summary_full(T, Year, Status, AGI, StdDed, ItemizedDed, DeductionUsed, TaxableIncome, Tax).
 
+taxpayer(?T) :-
+    filing_status(?T, ?_Status).
+
 tax_summary_full(?T, ?Year, ?Status, ?AGI, ?SD, ?ID, ?Ded, ?TI, ?Tax) :-
     tax_year(?Year),
     filing_status(?T, ?Status),
@@ -69,7 +72,7 @@ line_value(?T, 'itemized_deduction', ?ID) :-
 line_explanation(?T, 'itemized_deduction', ?Explanation) :-
     tax_year(?Year),
     itemized_deduction(?T, ?Year, ?_CurrentItemizedDeduction),
-    ?Explanation = 'Itemized deduction aggregates deductible Schedule A components (medical above floor, SALT capped, mortgage interest, charitable, casualty, other) when provided.'.
+    ?Explanation = 'Itemized deduction aggregates deductible Schedule A components (medical above floor, SALT after income/sales election, cap, and phaseout, mortgage interest, charitable, casualty, other) when provided.'.
 
 line_value(?T, 'deduction_used', ?Ded) :-
     tax_year(?Year),

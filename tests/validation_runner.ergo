@@ -59,3 +59,22 @@ itemized_pass(?T) :-
 itemized_fail(?T) :-
     expected_itemized_deduction(?T, _),
     \+ itemized_pass(?T).
+
+// Direct public-predicate guard: tax_liability should never return negative tax
+// for non-positive taxable income, even when queried outside taxable_income/3.
+
+negative_tax_guard_status(single).
+negative_tax_guard_status(married_filing_jointly).
+negative_tax_guard_status(married_filing_separately).
+negative_tax_guard_status(head_of_household).
+negative_tax_guard_status(qualifying_surviving_spouse).
+
+direct_tax_guard_pass(?Status) :-
+    negative_tax_guard_status(?Status),
+    tax_liability(2025, ?Status, -100, ?Tax),
+    ?Tax =:= 0.
+
+direct_tax_guard_fail(?Status, ?Tax) :-
+    negative_tax_guard_status(?Status),
+    tax_liability(2025, ?Status, -100, ?Tax),
+    \+ (?Tax =:= 0).

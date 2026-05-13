@@ -74,3 +74,15 @@ spouse_age_65_or_over_flag(four_qualifiers_mfj, 1).
 spouse_blind_flag(four_qualifiers_mfj, 1).
 expected_taxable_income(four_qualifiers_mfj, 82100).
 expected_tax(four_qualifiers_mfj, 9375).
+
+// Bad spouse flags on a single return should be ignored. SD remains 15750.
+//   Wages 50000, TI = 34250.
+//   Tax = 1192.5 + (34250-11925)*0.12 = 1192.5 + 2679 = 3871.5.
+filing_status(single_with_spouse_flags, single).
+wage_income(single_with_spouse_flags, 50000).
+age_65_or_over_flag(single_with_spouse_flags, 0).
+blind_flag(single_with_spouse_flags, 0).
+spouse_age_65_or_over_flag(single_with_spouse_flags, 1).
+spouse_blind_flag(single_with_spouse_flags, 1).
+expected_taxable_income(single_with_spouse_flags, 34250).
+expected_tax(single_with_spouse_flags, 3871.5).

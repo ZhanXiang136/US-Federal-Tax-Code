@@ -1,0 +1,54 @@
+// Example taxpayers for ordinary demo/query/REPL sessions.
+// Validation expectations live under tests/ and are loaded only by --test.
+
+// Alice: baseline single filer.
+filing_status(alice, single).
+wage_income(alice, 60000).
+age_65_or_over_flag(alice, 0).
+blind_flag(alice, 0).
+spouse_age_65_or_over_flag(alice, 0).
+spouse_blind_flag(alice, 0).
+
+// Bob: wages plus small investment income.
+filing_status(bob, single).
+wage_income(bob, 50000).
+taxable_interest_income(bob, 200).
+ordinary_dividends(bob, 300).
+age_65_or_over_flag(bob, 0).
+blind_flag(bob, 0).
+spouse_age_65_or_over_flag(bob, 0).
+spouse_blind_flag(bob, 0).
+
+// Joan: higher-income single filer.
+filing_status(joan, single).
+wage_income(joan, 110000).
+age_65_or_over_flag(joan, 0).
+blind_flag(joan, 0).
+spouse_age_65_or_over_flag(joan, 0).
+spouse_blind_flag(joan, 0).
+
+// Dana: AGI example with multiple income sources and adjustments.
+filing_status(dana, single).
+wage_income(dana, 80000).
+taxable_interest_income(dana, 500).
+ordinary_dividends(dana, 300).
+capital_gains(dana, 1200).
+ira_deduction(dana, 2000).
+hsa_deduction(dana, 1000).
+age_65_or_over_flag(dana, 0).
+blind_flag(dana, 0).
+spouse_age_65_or_over_flag(dana, 0).
+spouse_blind_flag(dana, 0).
+
+// Erin: itemized deduction and structured-trace showcase.
+filing_status(erin, single).
+wage_income(erin, 100000).
+medical_expenses(erin, 10000).
+state_local_income_taxes(erin, 8000).
+real_estate_taxes(erin, 4000).
+mortgage_interest(erin, 8000).
+charitable_cash(erin, 2000).
+age_65_or_over_flag(erin, 0).
+blind_flag(erin, 0).
+spouse_age_65_or_over_flag(erin, 0).
+spouse_blind_flag(erin, 0).

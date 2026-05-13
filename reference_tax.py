@@ -32,7 +32,23 @@ PER_QUALIFIER_2025 = {
 }
 
 MEDICAL_FLOOR_PCT_2025 = 0.075
-SALT_CAP_2025 = 10000
+SALT_FULL_CAP_2025 = 40000
+SALT_FULL_FLOOR_2025 = 10000
+SALT_PHASEOUT_RATE_2025 = 0.30
+SALT_PHASEOUT_THRESHOLD_2025 = {
+    "single": 500000,
+    "married_filing_jointly": 500000,
+    "qualifying_surviving_spouse": 500000,
+    "head_of_household": 500000,
+    "married_filing_separately": 250000,
+}
+SALT_CAP_DIVISOR_2025 = {
+    "single": 1,
+    "married_filing_jointly": 1,
+    "qualifying_surviving_spouse": 1,
+    "head_of_household": 1,
+    "married_filing_separately": 2,
+}
 
 # (lower_inclusive, upper_exclusive_or_None, rate)
 BRACKETS_2025: dict[str, list[tuple[int, int | None, float]]] = {
@@ -110,6 +126,13 @@ ADJUSTMENT_KEYS = [
     "other_adjustments",
 ]
 
+SALT_MAGI_ADDITION_KEYS = [
+    "puerto_rico_excluded_income",
+    "foreign_earned_income_exclusion",
+    "foreign_housing_exclusion",
+    "american_samoa_excluded_income",
+]
+
 
 @dataclass
 class TaxpayerInputs:
@@ -118,6 +141,7 @@ class TaxpayerInputs:
     blind: int = 0
     spouse_age_65_or_over: int = 0
     spouse_blind: int = 0
+    salt_tax_election: str | None = None
     income: dict[str, float] = field(default_factory=dict)
     adjustments: dict[str, float] = field(default_factory=dict)
     schedule_a: dict[str, float] = field(default_factory=dict)
@@ -146,12 +170,13 @@ def compute_agi(inputs: TaxpayerInputs) -> tuple[float, float, float]:
 
 def compute_standard_deduction(inputs: TaxpayerInputs) -> float:
     base = STANDARD_DEDUCTION_2025[inputs.filing_status]
-    qualifiers = (
-        inputs.age_65_or_over
-        + inputs.blind
-        + inputs.spouse_age_65_or_over
-        + inputs.spouse_blind
-    )
+    qualifiers = inputs.age_65_or_over + inputs.blind
+    if inputs.filing_status in (
+        "married_filing_jointly",
+        "married_filing_separately",
+        "qualifying_surviving_spouse",
+    ):
+        qualifiers += inputs.spouse_age_65_or_over + inputs.spouse_blind
     additional = PER_QUALIFIER_2025[inputs.filing_status] * qualifiers
     return base + additional
 
@@ -165,13 +190,25 @@ def compute_itemized_deduction(inputs: TaxpayerInputs, agi: float) -> float:
     else:
         medical = 0
 
+    income_tax = a.get("state_local_income_taxes", 0)
+    sales_tax = a.get("state_local_sales_taxes", 0)
+    if inputs.salt_tax_election == "income":
+        income_or_sales = income_tax
+    elif inputs.salt_tax_election == "sales":
+        income_or_sales = sales_tax
+    else:
+        income_or_sales = max(income_tax, sales_tax)
     salt_components = (
-        a.get("state_local_income_taxes", 0)
-        + a.get("state_local_sales_taxes", 0)
+        income_or_sales
         + a.get("real_estate_taxes", 0)
         + a.get("personal_property_taxes", 0)
     )
-    salt = min(salt_components, SALT_CAP_2025)
+    salt_modified_agi = agi + sum(a.get(k, 0) for k in SALT_MAGI_ADDITION_KEYS)
+    threshold = SALT_PHASEOUT_THRESHOLD_2025[inputs.filing_status]
+    reduction = max(salt_modified_agi - threshold, 0) * SALT_PHASEOUT_RATE_2025
+    worksheet_cap = max(SALT_FULL_CAP_2025 - reduction, SALT_FULL_FLOOR_2025)
+    effective_cap = worksheet_cap / SALT_CAP_DIVISOR_2025[inputs.filing_status]
+    salt = min(salt_components, effective_cap)
 
     other = (
         a.get("mortgage_interest", 0)

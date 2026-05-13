@@ -6,11 +6,6 @@
 
 // ---- Per-invariant pass and violation predicates. ----
 
-// Every loaded taxpayer is one with a filing_status fact. Anchor invariants
-// here so backtracking enumerates all taxpayers (downstream predicates like
-// income_sum and agi use cuts that block enumeration on unbound ?T).
-taxpayer(?T) :- filing_status(?T, ?_Status).
-
 // AGI must be non-negative.
 inv_agi_nonneg_pass(?T) :-
     taxpayer(?T),

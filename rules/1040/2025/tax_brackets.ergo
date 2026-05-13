@@ -22,7 +22,11 @@
 // ---------- SINGLE ----------
 
 tax_liability(2025, single, ?TI, ?Tax) :-
-    ?TI =< 11925,
+    ?TI =< 0,
+    ?Tax \is 0.
+
+tax_liability(2025, single, ?TI, ?Tax) :-
+    ?TI > 0, ?TI =< 11925,
     ?Tax \is 0.10 * ?TI.
 
 tax_liability(2025, single, ?TI, ?Tax) :-
@@ -73,7 +77,11 @@ tax_liability(2025, single, ?TI, ?Tax) :-
 // ---------- MARRIED FILING JOINTLY ----------
 
 tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
-    ?TI =< 23850,
+    ?TI =< 0,
+    ?Tax \is 0.
+
+tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
+    ?TI > 0, ?TI =< 23850,
     ?Tax \is 0.10 * ?TI.
 
 tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
@@ -124,12 +132,21 @@ tax_liability(2025, married_filing_jointly, ?TI, ?Tax) :-
 // Qualifying surviving spouse shares the MFJ brackets.
 
 tax_liability(2025, qualifying_surviving_spouse, ?TI, ?Tax) :-
+    ?TI > 0,
     tax_liability(2025, married_filing_jointly, ?TI, ?Tax).
+
+tax_liability(2025, qualifying_surviving_spouse, ?TI, ?Tax) :-
+    ?TI =< 0,
+    ?Tax \is 0.
 
 // ---------- MARRIED FILING SEPARATELY ----------
 
 tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
-    ?TI =< 11925,
+    ?TI =< 0,
+    ?Tax \is 0.
+
+tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
+    ?TI > 0, ?TI =< 11925,
     ?Tax \is 0.10 * ?TI.
 
 tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
@@ -180,7 +197,11 @@ tax_liability(2025, married_filing_separately, ?TI, ?Tax) :-
 // ---------- HEAD OF HOUSEHOLD ----------
 
 tax_liability(2025, head_of_household, ?TI, ?Tax) :-
-    ?TI =< 17000,
+    ?TI =< 0,
+    ?Tax \is 0.
+
+tax_liability(2025, head_of_household, ?TI, ?Tax) :-
+    ?TI > 0, ?TI =< 17000,
     ?Tax \is 0.10 * ?TI.
 
 tax_liability(2025, head_of_household, ?TI, ?Tax) :-

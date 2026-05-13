@@ -17,6 +17,7 @@ Repository layout
 - rules/1040/2025/tax_brackets.ergo: 2025 ordinary income tax brackets
 - rules/1040/taxable_income.ergo: taxable income logic
 - rules/1040/summary_and_explanations.ergo: summary predicates and explanation predicates
+- examples/demo_taxpayers_2025.ergo: demo/query taxpayers loaded in normal sessions
 - tests/examples_2025_basic.ergo: baseline tax and taxable-income examples
 - tests/examples_2025_agi.ergo: AGI-specific examples
 - tests/examples_2025_itemized_and_explanations.ergo: itemized-deduction and explainability examples
@@ -26,7 +27,7 @@ Repository layout
 - tests/validation_brackets_hoh_mfs.ergo: 2025 bracket boundaries for HoH and MFS
 - tests/validation_age_blind.ergo: 1–4 age/blind qualifier scenarios
 - tests/validation_income_sources.ergo: multi-source income, retirement, adjustments, AGI floor
-- tests/validation_itemized_edges.ergo: medical floor, SALT cap, casualty, charitable noncash
+- tests/validation_itemized_edges.ergo: medical floor, 2025 SALT cap/phaseout, casualty, charitable noncash
 - tests/validation_runner.ergo: pass/fail predicates used by `python ergo.py --test`
 - tax_1040_2024.ergo and examples_1040_2024.ergo: legacy standalone prototype files kept for reference only
 
@@ -49,17 +50,29 @@ Query syntax
 - Use shell double quotes around the full query string
 
 Useful commands
+- Print a curated demonstration — Erin's full 1040 summary plus the derivation trace:
+  `python ergo.py --demo`
 - Run the full validation suite (per-case + invariants + differential vs reference_tax.py; exits non-zero on any failure):
   `python ergo.py --test`
+- Walk through an interactive interview that prompts for your own 1040 inputs and prints the computed lines plus an optional trace:
+  `python ergo.py --interview`
 - Print a structured derivation trace for one taxpayer/line:
   `python ergo.py --trace erin tax_liability`
   Available labels: `tax_year`, `filing_status`, `total_income`, `adjustments_total`, `agi`, `standard_deduction`, `itemized_deduction`, `deduction_used`, `taxable_income`, `tax_liability`. Add `--show-zeros` to include zero-valued component leaves.
-- List the default demo queries:
-  `python ergo.py --list-default-queries`
 - Run one query:
   `python ergo.py --query "agi(dana, ?AGI)."`
 - Run multiple queries in one command:
   `python ergo.py --query "income_sum(dana, ?Income)." --query "adjustment_sum(dana, ?Adj)." --query "agi(dana, ?AGI)."`
+- Load validation facts/predicates in a normal query or REPL session:
+  `python ergo.py --load-tests --query "validation_pass(?T)."`
+
+Interactive REPL commands (run `python ergo.py` with no flags):
+- `:demo` — same curated showcase as `--demo`
+- `:summary TAXPAYER` — formatted 1040 summary for one taxpayer
+- `:trace TAXPAYER LABEL` — derivation tree for one line
+- `:test` — run the validation suite only if the session was started with `--load-tests`; otherwise use `python ergo.py --test`
+- `:taxpayers` — list every taxpayer currently loaded
+- `:predicates` / `:labels` / `:help` — reference
 
 Most useful predicates
 - `agi(Taxpayer, AGI)`: adjusted gross income
@@ -74,12 +87,12 @@ Most useful predicates
 Recommended example queries
 - Dana's AGI:
   `python ergo.py --query "agi(dana, ?AGI)."`
-- Erin's full tax summary:
+- Erin's full tax summary (or just `python ergo.py --demo`):
   `python ergo.py --query "tax_summary_full_det(erin, ?Year, ?Status, ?AGI, ?SD, ?ID, ?Ded, ?TI, ?Tax)."`
 - All loaded taxpayers and their filing statuses:
   `python ergo.py --query "filing_status(?T, ?Status)."`
-- Built-in validation checks:
-  `python ergo.py --query "case_ok(?T)." --query "itemized_case_ok(?T)." --query "explainability_case_ok(erin)."`
+- Per-case validation passes outside `--test`:
+  `python ergo.py --load-tests --query "validation_pass(?T)." --query "itemized_pass(?T)."`
 
 How to gather explanations
 - `line_value(Taxpayer, Label, Value)` returns the computed value for a named line
@@ -106,11 +119,12 @@ Explanation examples
   `python ergo.py --query "line_value(erin, 'taxable_income', ?TI)." --query "line_explanation(erin, 'taxable_income', ?E)."`
 
 How to read the output
-- Query answers are returned as variable bindings, for example `{'?AGI': 79000}`
-- Some atoms appear as `ERGOSymbol(value=single)`; this just means the atom `single`
+- Query answers are returned as variable bindings, for example `?AGI = 79000`
+- Ergo atoms are unwrapped in CLI output, so `single` means the atom `single`
 - For demos and scripts, prefer the `_det` summary predicates so you get one clean answer instead of backtracking over alternatives
 
 Notes
 - `ergo.py` now reads `.env` directly and builds a temporary combined rules file at runtime.
+- Normal sessions load core rules plus `examples/`; `--test` loads the validation suite instead.
 - The rules are intentionally modular so additional tax years, schedules, and credits can be added incrementally.
 - To add a new tax year, create a new `rules/1040/<YEAR>/` folder and update `tax_year/1` in `rules/1040/config.ergo`.

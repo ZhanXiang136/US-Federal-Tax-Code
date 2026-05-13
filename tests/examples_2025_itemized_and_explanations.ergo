@@ -11,12 +11,12 @@
 // Expected values:
 //  - AGI = 100,000
 //  - Medical deduction = 10,000 - (7.5% * 100,000) = 2,500
-//  - SALT deduction = min(8,000 + 4,000, 10,000) = 10,000
-//  - Itemized deduction = 2,500 + 10,000 + 8,000 + 2,000 = 22,500
+//  - SALT deduction = 8,000 + 4,000 = 12,000 (below the 2025 cap)
+//  - Itemized deduction = 2,500 + 12,000 + 8,000 + 2,000 = 24,500
 //  - Standard deduction = 15,750
-//  - Deduction used = 22,500
-//  - Taxable income = 77,500
-//  - Tax = 11,964
+//  - Deduction used = 24,500
+//  - Taxable income = 75,500
+//  - Tax = 11,524
 
 filing_status(erin, single).
 wage_income(erin, 100000).
@@ -32,10 +32,10 @@ blind_flag(erin, 0).
 spouse_age_65_or_over_flag(erin, 0).
 spouse_blind_flag(erin, 0).
 
-expected_itemized_deduction(erin, 22500).
-expected_deduction_used(erin, 22500).
-expected_taxable_income_itemized(erin, 77500).
-expected_tax_itemized(erin, 11964.0).
+expected_itemized_deduction(erin, 24500).
+expected_deduction_used(erin, 24500).
+expected_taxable_income_itemized(erin, 75500).
+expected_tax_itemized(erin, 11524.0).
 
 itemized_case_ok(?T) :-
     tax_year(?Year),
@@ -58,14 +58,14 @@ explainability_case_ok(erin) :-
     ?AGI =:= 100000,
     line_explanation(erin, 'agi', ?_ExplainAGI),
     line_value(erin, 'itemized_deduction', ?ID),
-    ?ID =:= 22500,
+    ?ID =:= 24500,
     line_explanation(erin, 'itemized_deduction', ?_ExplainItemized),
     line_value(erin, 'deduction_used', ?Ded),
-    ?Ded =:= 22500,
+    ?Ded =:= 24500,
     line_explanation(erin, 'deduction_used', ?_ExplainDeductionUsed),
     line_value(erin, 'taxable_income', ?TI),
-    ?TI =:= 77500,
+    ?TI =:= 75500,
     line_explanation(erin, 'taxable_income', ?_ExplainTaxableIncome),
     line_value(erin, 'tax_liability', ?Tax),
-    ?Tax =:= 11964.0,
+    ?Tax =:= 11524.0,
     line_explanation(erin, 'tax_liability', ?_ExplainTax).

@@ -121,13 +121,13 @@ line_trace(?T, 'standard_deduction', node('standard_deduction', ?SD, [
 
 line_trace(?T, 'itemized_deduction', node('itemized_deduction', ?ID, [
     comp(medical_after_floor, ?Med),
-    comp(salt_capped, ?Salt),
+    comp(salt_after_election_cap_phaseout, ?Salt),
     comp(mortgage_interest, ?MI),
     comp(charitable_cash, ?CC),
     comp(charitable_noncash, ?CNC),
     comp(casualty_losses, ?Cas),
     comp(other_itemized, ?Other),
-    formula('itemized = medical_after_floor + salt_capped + mortgage + charitable + casualty + other')
+    formula('itemized = medical_after_floor + salt_after_election_cap_phaseout + mortgage + charitable + casualty + other')
 ])) :-
     tax_year(?Year),
     medical_or_zero(?T, ?Year, ?Med),

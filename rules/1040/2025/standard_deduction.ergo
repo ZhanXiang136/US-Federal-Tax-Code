@@ -22,14 +22,32 @@ per_qualifier_additional_amount(2025, married_filing_jointly,      1600).
 per_qualifier_additional_amount(2025, married_filing_separately,   1600).
 per_qualifier_additional_amount(2025, qualifying_surviving_spouse, 1600).
 
-// Helper: count age/blind qualifiers on the return (0–4).
+// Helper: count age/blind qualifiers on the return.
+// Spouse qualifiers only apply to married/QSS statuses. For single and head of
+// household returns, spouse flags are ignored even if bad input facts exist.
 
 qualifier_count(?T, ?Count) :-
+    filing_status(?T, ?Status),
+    single_filer_qualifier_status(?Status),
+    age_65_or_over_flag(?T,           ?SelfAge),
+    blind_flag(?T,                    ?SelfBlind),
+    ?Count \is ?SelfAge + ?SelfBlind.
+
+qualifier_count(?T, ?Count) :-
+    filing_status(?T, ?Status),
+    joint_or_spouse_qualifier_status(?Status),
     age_65_or_over_flag(?T,           ?SelfAge),
     blind_flag(?T,                    ?SelfBlind),
     spouse_age_65_or_over_flag(?T,    ?SpouseAge),
     spouse_blind_flag(?T,             ?SpouseBlind),
     ?Count \is ?SelfAge + ?SelfBlind + ?SpouseAge + ?SpouseBlind.
+
+single_filer_qualifier_status(single).
+single_filer_qualifier_status(head_of_household).
+
+joint_or_spouse_qualifier_status(married_filing_jointly).
+joint_or_spouse_qualifier_status(married_filing_separately).
+joint_or_spouse_qualifier_status(qualifying_surviving_spouse).
 
 additional_standard_deduction(?T, 2025, ?Extra) :-
     filing_status(?T, ?Status),

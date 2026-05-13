@@ -4,6 +4,8 @@
 // medical_expenses(T, Amount).
 // state_local_income_taxes(T, Amount).
 // state_local_sales_taxes(T, Amount).
+// salt_tax_election(T, income).  % optional, otherwise larger of income/sales
+// salt_tax_election(T, sales).
 // real_estate_taxes(T, Amount).
 // personal_property_taxes(T, Amount).
 // mortgage_interest(T, Amount).
@@ -11,13 +13,39 @@
 // charitable_noncash(T, Amount).
 // casualty_losses(T, Amount).
 // other_itemized(T, Amount).
+// puerto_rico_excluded_income(T, Amount).       % optional SALT MAGI addback
+// foreign_earned_income_exclusion(T, Amount).   % optional SALT MAGI addback
+// foreign_housing_exclusion(T, Amount).         % optional SALT MAGI addback
+// american_samoa_excluded_income(T, Amount).    % optional SALT MAGI addback
 
 // Policy parameters (year-specific):
 // medical_floor_pct(Year, Pct).
-// salt_cap(Year, Cap).
+// salt_full_cap(Year, Cap).
+// salt_full_floor(Year, Floor).
+// salt_phaseout_threshold(Year, Status, Threshold).
+// salt_phaseout_rate(Year, Rate).
 
 medical_floor_pct(2025, 0.075).
-salt_cap(2025, 10000).
+
+// 2025 Schedule A line 5e worksheet.
+// The full cap is $40,000 and phases down by 30% of modified AGI above the
+// status threshold, but not below $10,000. MFS uses half the final worksheet
+// amount, so its effective cap is half of the full worksheet cap.
+salt_full_cap(2025, 40000).
+salt_full_floor(2025, 10000).
+salt_phaseout_rate(2025, 0.30).
+
+salt_phaseout_threshold(2025, married_filing_separately, 250000).
+salt_phaseout_threshold(2025, single, 500000).
+salt_phaseout_threshold(2025, married_filing_jointly, 500000).
+salt_phaseout_threshold(2025, qualifying_surviving_spouse, 500000).
+salt_phaseout_threshold(2025, head_of_household, 500000).
+
+salt_cap_divisor(2025, married_filing_separately, 2).
+salt_cap_divisor(2025, single, 1).
+salt_cap_divisor(2025, married_filing_jointly, 1).
+salt_cap_divisor(2025, qualifying_surviving_spouse, 1).
+salt_cap_divisor(2025, head_of_household, 1).
 
 // Helpers.
 
@@ -50,32 +78,60 @@ medical_deduction(?T, ?Year, ?Ded) :-
 medical_deduction(?T, _Year, 0) :-
     \+ medical_expenses(?T, _).
 
-// SALT deduction with cap.
-
-salt_total(?T, ?Total) :-
-    state_local_income_taxes(?T, ?Inc),
-    ?Total \is ?Inc.
-
-salt_total(?T, ?Total) :-
-    state_local_sales_taxes(?T, ?Sales),
-    ?Total \is ?Sales.
-
-salt_total(?T, ?Total) :-
-    real_estate_taxes(?T, ?RE),
-    ?Total \is ?RE.
-
-salt_total(?T, ?Total) :-
-    personal_property_taxes(?T, ?PP),
-    ?Total \is ?PP.
+// SALT deduction with election, cap, and high-income phaseout.
+// A taxpayer may deduct state/local income taxes or general sales taxes, not
+// both. Optional salt_tax_election(T, income|sales) facts can force the choice;
+// otherwise the model chooses the larger value.
 
 salt_deduction(?T, ?Year, ?Ded) :-
-    salt_income_or_zero(?T, ?Inc),
-    salt_sales_or_zero(?T, ?Sales),
+    salt_total_before_cap(?T, ?Total),
+    salt_effective_cap(?T, ?Year, ?Cap),
+    min2(?Total, ?Cap, ?Ded).
+
+salt_total_before_cap(?T, ?Total) :-
+    salt_income_or_sales_or_zero(?T, ?IncomeOrSales),
     salt_re_or_zero(?T, ?RE),
     salt_pp_or_zero(?T, ?PP),
-    ?Total \is ?Inc + ?Sales + ?RE + ?PP,
-    salt_cap(?Year, ?Cap),
-    min2(?Total, ?Cap, ?Ded).
+    ?Total \is ?IncomeOrSales + ?RE + ?PP.
+
+salt_income_or_sales_or_zero(?T, ?Amount) :-
+    salt_tax_election(?T, income),
+    salt_income_or_zero(?T, ?Amount),
+    !.
+
+salt_income_or_sales_or_zero(?T, ?Amount) :-
+    salt_tax_election(?T, sales),
+    salt_sales_or_zero(?T, ?Amount),
+    !.
+
+salt_income_or_sales_or_zero(?T, ?Amount) :-
+    \+ salt_tax_election(?T, _),
+    salt_income_or_zero(?T, ?Inc),
+    salt_sales_or_zero(?T, ?Sales),
+    max2(?Inc, ?Sales, ?Amount).
+
+salt_effective_cap(?T, ?Year, ?Cap) :-
+    filing_status(?T, ?Status),
+    salt_full_cap(?Year, ?FullCap),
+    salt_full_floor(?Year, ?FullFloor),
+    salt_phaseout_threshold(?Year, ?Status, ?Threshold),
+    salt_phaseout_rate(?Year, ?Rate),
+    salt_modified_agi(?T, ?MAGI),
+    ?Excess \is ?MAGI - ?Threshold,
+    max2(?Excess, 0, ?PhaseoutBase),
+    ?Reduction \is ?PhaseoutBase * ?Rate,
+    ?ReducedFullCap \is ?FullCap - ?Reduction,
+    max2(?ReducedFullCap, ?FullFloor, ?WorksheetCap),
+    salt_cap_divisor(?Year, ?Status, ?Divisor),
+    ?Cap \is ?WorksheetCap / ?Divisor.
+
+salt_modified_agi(?T, ?MAGI) :-
+    agi(?T, ?AGI),
+    puerto_rico_excluded_income_or_zero(?T, ?PR),
+    foreign_earned_income_exclusion_or_zero(?T, ?FEIE),
+    foreign_housing_exclusion_or_zero(?T, ?FHE),
+    american_samoa_excluded_income_or_zero(?T, ?AS),
+    ?MAGI \is ?AGI + ?PR + ?FEIE + ?FHE + ?AS.
 
 salt_income_or_zero(?T, ?Inc) :-
     state_local_income_taxes(?T, ?Inc),
@@ -100,6 +156,30 @@ salt_pp_or_zero(?T, ?PP) :-
     !.
 salt_pp_or_zero(?T, 0) :-
     \+ personal_property_taxes(?T, _).
+
+puerto_rico_excluded_income_or_zero(?T, ?V) :-
+    puerto_rico_excluded_income(?T, ?V),
+    !.
+puerto_rico_excluded_income_or_zero(?T, 0) :-
+    \+ puerto_rico_excluded_income(?T, _).
+
+foreign_earned_income_exclusion_or_zero(?T, ?V) :-
+    foreign_earned_income_exclusion(?T, ?V),
+    !.
+foreign_earned_income_exclusion_or_zero(?T, 0) :-
+    \+ foreign_earned_income_exclusion(?T, _).
+
+foreign_housing_exclusion_or_zero(?T, ?V) :-
+    foreign_housing_exclusion(?T, ?V),
+    !.
+foreign_housing_exclusion_or_zero(?T, 0) :-
+    \+ foreign_housing_exclusion(?T, _).
+
+american_samoa_excluded_income_or_zero(?T, ?V) :-
+    american_samoa_excluded_income(?T, ?V),
+    !.
+american_samoa_excluded_income_or_zero(?T, 0) :-
+    \+ american_samoa_excluded_income(?T, _).
 
 // Itemized total (components that are provided).
 
