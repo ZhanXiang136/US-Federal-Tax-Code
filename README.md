@@ -49,8 +49,11 @@ Query syntax
 - Use shell double quotes around the full query string
 
 Useful commands
-- Run the full validation suite (exits non-zero on any failure):
+- Run the full validation suite (per-case + invariants + differential vs reference_tax.py; exits non-zero on any failure):
   `python ergo.py --test`
+- Print a structured derivation trace for one taxpayer/line:
+  `python ergo.py --trace erin tax_liability`
+  Available labels: `tax_year`, `filing_status`, `total_income`, `adjustments_total`, `agi`, `standard_deduction`, `itemized_deduction`, `deduction_used`, `taxable_income`, `tax_liability`. Add `--show-zeros` to include zero-valued component leaves.
 - List the default demo queries:
   `python ergo.py --list-default-queries`
 - Run one query:

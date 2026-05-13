@@ -1,0 +1,185 @@
+// Structured derivation traces.
+//
+// line_trace(T, Label, Trace) returns a nested compound term capturing the
+// derivation of a named line for taxpayer T. The Python pretty-printer
+// renders it as an indented tree, turning the model's "show your work"
+// claim into a concrete artifact rather than a static explanation string.
+//
+// Trace grammar:
+//   node(Label, Value, [Child, ...])  - a derived line with named children
+//   comp(Name, Value)                  - a component leaf (e.g. an income source)
+//   fact(Name, Value)                  - an input fact leaf (e.g. filing_status)
+//   formula(Text)                      - a human-readable rule annotation
+
+// ---- Leaf-level lines. ----
+
+line_trace(?T, 'tax_year', node('tax_year', ?Year, [])) :-
+    filing_status(?T, ?_Status),
+    tax_year(?Year).
+
+line_trace(?T, 'filing_status', node('filing_status', ?Status, [])) :-
+    filing_status(?T, ?Status).
+
+// ---- Income breakdown. ----
+
+income_components_list(?T, [
+    comp(wage_income, ?W),
+    comp(taxable_interest_income, ?I),
+    comp(ordinary_dividends, ?D),
+    comp(qualified_dividends, ?QD),
+    comp(capital_gains, ?G),
+    comp(business_income, ?B),
+    comp(rental_income, ?R),
+    comp(royalty_income, ?Ry),
+    comp(farm_income, ?F),
+    comp(taxable_refunds, ?TR),
+    comp(alimony_received_pre2019, ?A),
+    comp(social_security_taxable, ?SS),
+    comp(unemployment_comp, ?U),
+    comp(other_income, ?O)
+]) :-
+    wage_income_or_zero(?T, ?W),
+    taxable_interest_or_zero(?T, ?I),
+    ordinary_dividends_or_zero(?T, ?D),
+    qualified_dividends_or_zero(?T, ?QD),
+    capital_gains_or_zero(?T, ?G),
+    business_income_or_zero(?T, ?B),
+    rental_income_or_zero(?T, ?R),
+    royalty_income_or_zero(?T, ?Ry),
+    farm_income_or_zero(?T, ?F),
+    taxable_refunds_or_zero(?T, ?TR),
+    alimony_received_pre2019_or_zero(?T, ?A),
+    social_security_taxable_or_zero(?T, ?SS),
+    unemployment_comp_or_zero(?T, ?U),
+    other_income_or_zero(?T, ?O).
+
+line_trace(?T, 'total_income', node('total_income', ?Total, ?Components)) :-
+    income_sum(?T, ?Total),
+    income_components_list(?T, ?Components).
+
+// ---- Adjustments breakdown. ----
+
+adjustment_components_list(?T, [
+    comp(educator_expenses, ?E),
+    comp(ira_deduction, ?I),
+    comp(student_loan_interest, ?S),
+    comp(hsa_deduction, ?H),
+    comp(self_employment_tax_deduction, ?SE),
+    comp(self_employed_health_insurance, ?HI),
+    comp(penalty_on_early_withdrawal, ?P),
+    comp(sep_simple_qualified_plans, ?SEP),
+    comp(self_employed_retirement, ?SER),
+    comp(moving_expenses_active_duty, ?M),
+    comp(alimony_paid_pre2019, ?A),
+    comp(other_adjustments, ?O)
+]) :-
+    educator_expenses_or_zero(?T, ?E),
+    ira_deduction_or_zero(?T, ?I),
+    student_loan_interest_or_zero(?T, ?S),
+    hsa_deduction_or_zero(?T, ?H),
+    self_employment_tax_deduction_or_zero(?T, ?SE),
+    self_employed_health_insurance_or_zero(?T, ?HI),
+    penalty_on_early_withdrawal_or_zero(?T, ?P),
+    sep_simple_qualified_plans_or_zero(?T, ?SEP),
+    self_employed_retirement_or_zero(?T, ?SER),
+    moving_expenses_active_duty_or_zero(?T, ?M),
+    alimony_paid_pre2019_or_zero(?T, ?A),
+    other_adjustments_or_zero(?T, ?O).
+
+line_trace(?T, 'adjustments_total', node('adjustments_total', ?Adj, ?Components)) :-
+    adjustment_sum(?T, ?Adj),
+    adjustment_components_list(?T, ?Components).
+
+// ---- AGI. ----
+
+line_trace(?T, 'agi', node('agi', ?AGI, [
+    ?TotalIncomeTrace,
+    ?AdjTrace,
+    formula('agi = max(total_income - adjustments_total, 0)')
+])) :-
+    line_trace(?T, 'total_income', ?TotalIncomeTrace),
+    line_trace(?T, 'adjustments_total', ?AdjTrace),
+    agi(?T, ?AGI).
+
+// ---- Standard deduction. ----
+
+line_trace(?T, 'standard_deduction', node('standard_deduction', ?SD, [
+    fact(filing_status, ?Status),
+    fact(base, ?Base),
+    fact(qualifier_count, ?QC),
+    fact(per_qualifier_amount, ?PQ),
+    formula('standard_deduction = base + qualifier_count * per_qualifier_amount')
+])) :-
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    base_standard_deduction(?Year, ?Status, ?Base),
+    qualifier_count(?T, ?QC),
+    per_qualifier_additional_amount(?Year, ?Status, ?PQ),
+    standard_deduction(?T, ?Year, ?SD).
+
+// ---- Itemized deduction. ----
+
+line_trace(?T, 'itemized_deduction', node('itemized_deduction', ?ID, [
+    comp(medical_after_floor, ?Med),
+    comp(salt_capped, ?Salt),
+    comp(mortgage_interest, ?MI),
+    comp(charitable_cash, ?CC),
+    comp(charitable_noncash, ?CNC),
+    comp(casualty_losses, ?Cas),
+    comp(other_itemized, ?Other),
+    formula('itemized = medical_after_floor + salt_capped + mortgage + charitable + casualty + other')
+])) :-
+    tax_year(?Year),
+    medical_or_zero(?T, ?Year, ?Med),
+    salt_or_zero(?T, ?Year, ?Salt),
+    mortgage_interest_or_zero(?T, ?MI),
+    charitable_cash_or_zero(?T, ?CC),
+    charitable_noncash_or_zero(?T, ?CNC),
+    casualty_losses_or_zero(?T, ?Cas),
+    other_itemized_or_zero(?T, ?Other),
+    itemized_deduction(?T, ?Year, ?ID).
+
+// ---- Deduction used (max of standard vs itemized). ----
+
+chosen_deduction_kind(?SD, ?ID, standard) :- ?SD >= ?ID.
+chosen_deduction_kind(?SD, ?ID, itemized) :- ?ID > ?SD.
+
+line_trace(?T, 'deduction_used', node('deduction_used', ?Ded, [
+    ?SDTrace,
+    ?IDTrace,
+    fact(chosen, ?Chosen),
+    formula('deduction_used = max(standard_deduction, itemized_deduction)')
+])) :-
+    tax_year(?Year),
+    line_trace(?T, 'standard_deduction', ?SDTrace),
+    line_trace(?T, 'itemized_deduction', ?IDTrace),
+    standard_deduction(?T, ?Year, ?SD),
+    itemized_deduction(?T, ?Year, ?ID),
+    deduction_used(?T, ?Year, ?Ded),
+    chosen_deduction_kind(?SD, ?ID, ?Chosen),
+    !.
+
+// ---- Taxable income. ----
+
+line_trace(?T, 'taxable_income', node('taxable_income', ?TI, [
+    ?AGITrace,
+    ?DedTrace,
+    formula('taxable_income = max(agi - deduction_used, 0)')
+])) :-
+    tax_year(?Year),
+    line_trace(?T, 'agi', ?AGITrace),
+    line_trace(?T, 'deduction_used', ?DedTrace),
+    taxable_income(?T, ?Year, ?TI).
+
+// ---- Tax liability. ----
+
+line_trace(?T, 'tax_liability', node('tax_liability', ?Tax, [
+    ?TITrace,
+    fact(filing_status, ?Status),
+    formula('progressive bracket schedule for filing_status applied to taxable_income')
+])) :-
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    line_trace(?T, 'taxable_income', ?TITrace),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax).

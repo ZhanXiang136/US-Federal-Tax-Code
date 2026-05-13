@@ -9,7 +9,7 @@ validation_pass(?T) :-
     expected_taxable_income(?T, ?ExpTI),
     expected_tax(?T, ?ExpTax),
     tax_year(?Year),
-    tax_summary_full_det(?T, ?Year, ?_S, ?_A, ?_SD, ?_ID, ?_D, ?TI, ?Tax),
+    tax_summary_det(?T, ?Year, ?_S, ?_A, ?_SD, ?TI, ?Tax),
     ?TI =:= ?ExpTI,
     ?Tax =:= ?ExpTax.
 
@@ -17,14 +17,14 @@ validation_fail(?T, ?ExpTI, ?TI, ?ExpTax, ?Tax) :-
     expected_taxable_income(?T, ?ExpTI),
     expected_tax(?T, ?ExpTax),
     tax_year(?Year),
-    tax_summary_full_det(?T, ?Year, ?_S, ?_A, ?_SD, ?_ID, ?_D, ?TI, ?Tax),
+    tax_summary_det(?T, ?Year, ?_S, ?_A, ?_SD, ?TI, ?Tax),
     \+ (?TI =:= ?ExpTI).
 
 validation_fail(?T, ?ExpTI, ?TI, ?ExpTax, ?Tax) :-
     expected_taxable_income(?T, ?ExpTI),
     expected_tax(?T, ?ExpTax),
     tax_year(?Year),
-    tax_summary_full_det(?T, ?Year, ?_S, ?_A, ?_SD, ?_ID, ?_D, ?TI, ?Tax),
+    tax_summary_det(?T, ?Year, ?_S, ?_A, ?_SD, ?TI, ?Tax),
     ?TI =:= ?ExpTI,
     \+ (?Tax =:= ?ExpTax).
 

@@ -18,7 +18,7 @@ tax_summary_full_det(?T, ?Year, ?Status, ?AGI, ?SD, ?ID, ?Ded, ?TI, ?Tax) :-
     !.
 
 tax_summary(?T, ?Year, ?Status, ?AGI, ?SD, ?TI, ?Tax) :-
-    tax_summary_full(?T, ?Year, ?Status, ?AGI, ?SD, _ID, _Ded, ?TI, ?Tax).
+    tax_summary_full(?T, ?Year, ?Status, ?AGI, ?SD, ?_ID, ?_Ded, ?TI, ?Tax).
 
 // Deterministic wrapper to avoid backtracking over multiple bracket solutions.
 tax_summary_det(?T, ?Year, ?Status, ?AGI, ?SD, ?TI, ?Tax) :-

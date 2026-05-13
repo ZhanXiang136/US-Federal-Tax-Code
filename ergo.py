@@ -63,6 +63,7 @@ CORE_RULE_FILES = [
     BASE_DIR / "rules/1040/2025/tax_brackets.ergo",
     BASE_DIR / "rules/1040/taxable_income.ergo",
     BASE_DIR / "rules/1040/summary_and_explanations.ergo",
+    BASE_DIR / "rules/1040/traces.ergo",
 ]
 
 
@@ -155,6 +156,19 @@ def parse_args() -> argparse.Namespace:
         help="Run the validation suite and exit non-zero if any case fails.",
     )
     parser.add_argument(
+        "--trace",
+        nargs=2,
+        metavar=("TAXPAYER", "LABEL"),
+        action="append",
+        help="Print the structured derivation trace for a taxpayer line. "
+             "Repeatable. Example: --trace erin tax_liability",
+    )
+    parser.add_argument(
+        "--show-zeros",
+        action="store_true",
+        help="With --trace, include zero-valued component leaves (off by default).",
+    )
+    parser.add_argument(
         "--no-interactive",
         action="store_true",
         help="Disable the interactive REPL even when no --query is supplied.",
@@ -211,6 +225,176 @@ def _atom(value) -> str:
     return getattr(value, "value", value)
 
 
+def _value(value):
+    """Unwrap an ErgoSymbol to its underlying value if present."""
+    return getattr(value, "value", value)
+
+
+def _functor_name(term) -> str | None:
+    """Return the functor name of a HILOG compound term, or None."""
+    name = getattr(term, "name", None)
+    if name is None:
+        return None
+    return str(_atom(name))
+
+
+def _format_number(value) -> str:
+    if isinstance(value, float) and value.is_integer():
+        return f"{int(value)}"
+    return f"{value}"
+
+
+def render_trace(trace, indent: int = 0, hide_zero: bool = True) -> None:
+    pad = "  " * indent
+    functor = _functor_name(trace)
+
+    if functor == "node":
+        args = trace.args
+        label = _atom(args[0])
+        value = args[1]
+        children = args[2]
+        print(f"{pad}{label} = {_format_number(value)}")
+        if isinstance(children, list):
+            for child in children:
+                render_trace(child, indent + 1, hide_zero)
+        return
+
+    if functor == "comp":
+        name = _atom(trace.args[0])
+        value = trace.args[1]
+        if hide_zero and value == 0:
+            return
+        print(f"{pad}- {name}: {_format_number(value)}")
+        return
+
+    if functor == "fact":
+        name = _atom(trace.args[0])
+        value = trace.args[1]
+        print(f"{pad}- {name}: {_format_number(value)}")
+        return
+
+    if functor == "formula":
+        text = _atom(trace.args[0])
+        print(f"{pad}# {text}")
+        return
+
+    if isinstance(trace, list):
+        for item in trace:
+            render_trace(item, indent, hide_zero)
+        return
+
+    # Empty list comes back as ERGOSymbol(value=[]); other atoms render as-is.
+    text = _atom(trace)
+    if text == "[]":
+        return
+    print(f"{pad}{text}")
+
+
+def print_line_trace(taxpayer: str, label: str, hide_zero: bool = True) -> int:
+    rows = _collect(f"line_trace({taxpayer}, '{label}', ?Trace).")
+    if not rows:
+        print(f"  No trace available for {taxpayer}.{label}")
+        return 1
+    print(f"\nTrace: {taxpayer}.{label}")
+    render_trace(rows[0]["?Trace"], hide_zero=hide_zero)
+    return 0
+
+
+SCHEDULE_A_KEYS = [
+    "medical_expenses",
+    "state_local_income_taxes",
+    "state_local_sales_taxes",
+    "real_estate_taxes",
+    "personal_property_taxes",
+    "mortgage_interest",
+    "charitable_cash",
+    "charitable_noncash",
+    "casualty_losses",
+    "other_itemized",
+]
+
+
+def _collect_facts(keys: list[str], taxpayer: str) -> dict[str, float]:
+    """For each fact name in `keys`, query <name>(taxpayer, ?V) and collect bindings."""
+    facts: dict[str, float] = {}
+    for key in keys:
+        rows = _collect(f"{key}({taxpayer}, ?V).")
+        if rows:
+            facts[key] = rows[0]["?V"]
+    return facts
+
+
+def run_differential_tests() -> tuple[int, int, list[tuple[str, str, float, float]]]:
+    """Run every taxpayer through both the Ergo rules and reference_tax.py.
+
+    Returns (pass_count, diff_count, divergence_records). Each divergence is
+    (taxpayer, field_name, ergo_value, reference_value).
+    """
+    from reference_tax import TaxpayerInputs, INCOME_KEYS, ADJUSTMENT_KEYS, compute
+
+    taxpayer_rows = _collect("taxpayer(?T).")
+    names = sorted({str(_atom(b["?T"])) for b in taxpayer_rows})
+
+    passes = 0
+    divergences: list[tuple[str, str, float, float]] = []
+
+    for name in names:
+        status_rows = _collect(f"filing_status({name}, ?S).")
+        if not status_rows:
+            continue
+        status = str(_atom(status_rows[0]["?S"]))
+
+        def flag(key: str) -> int:
+            rows = _collect(f"{key}({name}, ?V).")
+            return int(rows[0]["?V"]) if rows else 0
+
+        inputs = TaxpayerInputs(
+            filing_status=status,
+            age_65_or_over=flag("age_65_or_over_flag"),
+            blind=flag("blind_flag"),
+            spouse_age_65_or_over=flag("spouse_age_65_or_over_flag"),
+            spouse_blind=flag("spouse_blind_flag"),
+            income=_collect_facts(INCOME_KEYS, name),
+            adjustments=_collect_facts(ADJUSTMENT_KEYS, name),
+            schedule_a=_collect_facts(SCHEDULE_A_KEYS, name),
+        )
+        ref = compute(inputs)
+
+        agi_rows = _collect(f"agi({name}, ?A).")
+        ergo_agi = agi_rows[0]["?A"] if agi_rows else None
+        sd_rows = _collect(f"standard_deduction({name}, 2025, ?V).")
+        ergo_sd = sd_rows[0]["?V"] if sd_rows else None
+        id_rows = _collect(f"itemized_deduction({name}, 2025, ?V).")
+        ergo_id = id_rows[0]["?V"] if id_rows else None
+        ded_rows = _collect(f"deduction_used({name}, 2025, ?V).")
+        ergo_ded = ded_rows[0]["?V"] if ded_rows else None
+        ti_rows = _collect(f"taxable_income({name}, 2025, ?V).")
+        ergo_ti = ti_rows[0]["?V"] if ti_rows else None
+        tax_rows = _collect(f"tax_liability(2025, {status}, {ergo_ti}, ?V).") if ergo_ti is not None else []
+        ergo_tax = tax_rows[0]["?V"] if tax_rows else None
+
+        comparisons = [
+            ("agi", ergo_agi, ref.agi),
+            ("standard_deduction", ergo_sd, ref.standard_deduction),
+            ("itemized_deduction", ergo_id, ref.itemized_deduction),
+            ("deduction_used", ergo_ded, ref.deduction_used),
+            ("taxable_income", ergo_ti, ref.taxable_income),
+            ("tax_liability", ergo_tax, ref.tax),
+        ]
+
+        taxpayer_ok = True
+        for field_name, ergo_val, ref_val in comparisons:
+            if ergo_val is None:
+                continue
+            if abs(float(ergo_val) - float(ref_val)) > 1e-6:
+                divergences.append((name, field_name, float(ergo_val), float(ref_val)))
+                taxpayer_ok = False
+        if taxpayer_ok:
+            passes += 1
+
+    return passes, len(divergences), divergences
+
+
 def run_tests() -> int:
     """Run the validation suite. Returns a process exit code (0 = all pass)."""
     print("\n=== Validation suite ===")
@@ -221,6 +405,8 @@ def run_tests() -> int:
     agi_fails = _collect("agi_fail(?T, ?ExpAGI, ?AGI).")
     itemized_passes = _collect("itemized_pass(?T).")
     itemized_fails = _collect("itemized_fail(?T).")
+    invariant_passes = _collect("invariant_pass(?T, ?Name).")
+    invariant_violations = _collect("invariant_violation(?T, ?Name).")
 
     pass_names = sorted({str(_atom(b["?T"])) for b in passes})
     fail_records = sorted(
@@ -254,8 +440,45 @@ def run_tests() -> int:
     for name in itemized_fail_names:
         print(f"  FAIL  {name}")
 
-    total_fail = len(fail_records) + len(agi_fail_records) + len(itemized_fail_names)
-    total_pass = len(pass_names) + len(agi_pass_names) + len(itemized_pass_names)
+    inv_pass_pairs = sorted(
+        {(str(_atom(b["?T"])), str(_atom(b["?Name"]))) for b in invariant_passes}
+    )
+    inv_violation_pairs = sorted(
+        {(str(_atom(b["?T"])), str(_atom(b["?Name"]))) for b in invariant_violations}
+    )
+    print(
+        f"\nInvariant checks: {len(inv_pass_pairs)} pass, "
+        f"{len(inv_violation_pairs)} violation"
+    )
+    if inv_violation_pairs:
+        for taxpayer, name in inv_violation_pairs:
+            print(f"  VIOLATION  {taxpayer}: {name}")
+    else:
+        by_invariant: dict[str, int] = {}
+        for _, name in inv_pass_pairs:
+            by_invariant[name] = by_invariant.get(name, 0) + 1
+        for name in sorted(by_invariant):
+            print(f"  PASS  {name}: {by_invariant[name]} taxpayers")
+
+    diff_pass, diff_count, divergences = run_differential_tests()
+    print(f"\nDifferential vs reference_tax.py: {diff_pass} pass, {diff_count} divergence")
+    for taxpayer, field_name, ergo_val, ref_val in divergences:
+        print(f"  DIVERGE  {taxpayer}.{field_name}: ergo={ergo_val} ref={ref_val}")
+
+    total_fail = (
+        len(fail_records)
+        + len(agi_fail_records)
+        + len(itemized_fail_names)
+        + len(inv_violation_pairs)
+        + diff_count
+    )
+    total_pass = (
+        len(pass_names)
+        + len(agi_pass_names)
+        + len(itemized_pass_names)
+        + len(inv_pass_pairs)
+        + diff_pass
+    )
     print(f"\n=== {total_pass} checks passed, {total_fail} failed ===")
     return 0 if total_fail == 0 else 1
 
@@ -446,6 +669,9 @@ def main() -> None:
 
         if args.test:
             exit_code = run_tests()
+        elif args.trace:
+            for taxpayer, label in args.trace:
+                print_line_trace(taxpayer, label, hide_zero=not args.show_zeros)
         elif args.demo:
             run_queries(DEFAULT_QUERIES)
         elif args.queries:

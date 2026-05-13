@@ -82,7 +82,7 @@ case_ok(?T) :-
     tax_year(?Year),
     expected_taxable_income(?T, ?ExpTI),
     expected_tax(?T, ?ExpTax),
-    tax_summary(?T, ?Year, _Status, _AGI, _SD, ?TI, ?Tax),
+    tax_summary(?T, ?Year, ?_Status, ?_AGI, ?_SD, ?TI, ?Tax),
     ?TI =:= ?ExpTI,
     ?Tax =:= ?ExpTax.
 

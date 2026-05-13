@@ -1,0 +1,154 @@
+// Universal invariants that should hold for every loaded taxpayer.
+//
+// Hand-curated cases prove specific points; invariants prove a class of
+// statements over the whole population. invariant_violation/2 enumerates
+// every (taxpayer, invariant name) pair where an invariant fails to hold.
+
+// ---- Per-invariant pass and violation predicates. ----
+
+// Every loaded taxpayer is one with a filing_status fact. Anchor invariants
+// here so backtracking enumerates all taxpayers (downstream predicates like
+// income_sum and agi use cuts that block enumeration on unbound ?T).
+taxpayer(?T) :- filing_status(?T, ?_Status).
+
+// AGI must be non-negative.
+inv_agi_nonneg_pass(?T) :-
+    taxpayer(?T),
+    agi(?T, ?A),
+    ?A >= 0.
+
+inv_agi_nonneg_violation(?T) :-
+    taxpayer(?T),
+    agi(?T, ?A),
+    ?A < 0.
+
+// Taxable income must be non-negative.
+inv_ti_nonneg_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    taxable_income(?T, ?Year, ?TI),
+    ?TI >= 0.
+
+inv_ti_nonneg_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    taxable_income(?T, ?Year, ?TI),
+    ?TI < 0.
+
+// Taxable income cannot exceed AGI.
+inv_ti_le_agi_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    agi(?T, ?A),
+    taxable_income(?T, ?Year, ?TI),
+    ?TI =< ?A.
+
+inv_ti_le_agi_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    agi(?T, ?A),
+    taxable_income(?T, ?Year, ?TI),
+    ?TI > ?A.
+
+// Deduction used must be at least the standard deduction
+// (because deduction_used = max(standard, itemized)).
+inv_ded_ge_std_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    standard_deduction(?T, ?Year, ?SD),
+    deduction_used(?T, ?Year, ?D),
+    ?D >= ?SD.
+
+inv_ded_ge_std_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    standard_deduction(?T, ?Year, ?SD),
+    deduction_used(?T, ?Year, ?D),
+    ?D < ?SD.
+
+// Deduction used must also be at least the itemized deduction.
+inv_ded_ge_itemized_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    itemized_deduction(?T, ?Year, ?ID),
+    deduction_used(?T, ?Year, ?D),
+    ?D >= ?ID.
+
+inv_ded_ge_itemized_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    itemized_deduction(?T, ?Year, ?ID),
+    deduction_used(?T, ?Year, ?D),
+    ?D < ?ID.
+
+// Tax must be non-negative.
+inv_tax_nonneg_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax),
+    ?Tax >= 0.
+
+inv_tax_nonneg_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax),
+    ?Tax < 0.
+
+// Tax must equal 0 whenever taxable income is 0.
+inv_zero_ti_zero_tax_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, 0),
+    tax_liability(?Year, ?Status, 0, ?Tax),
+    ?Tax =:= 0.
+
+inv_zero_ti_zero_tax_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, 0),
+    tax_liability(?Year, ?Status, 0, ?Tax),
+    \+ (?Tax =:= 0).
+
+// Tax must never exceed taxable income (rates < 100%).
+inv_tax_le_ti_pass(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax),
+    ?Tax =< ?TI.
+
+inv_tax_le_ti_violation(?T) :-
+    taxpayer(?T),
+    tax_year(?Year),
+    filing_status(?T, ?Status),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax),
+    ?Tax > ?TI.
+
+// ---- Unified violation predicate enumerated by the runner. ----
+
+invariant_violation(?T, agi_nonneg)        :- inv_agi_nonneg_violation(?T).
+invariant_violation(?T, ti_nonneg)         :- inv_ti_nonneg_violation(?T).
+invariant_violation(?T, ti_le_agi)         :- inv_ti_le_agi_violation(?T).
+invariant_violation(?T, ded_ge_std)        :- inv_ded_ge_std_violation(?T).
+invariant_violation(?T, ded_ge_itemized)   :- inv_ded_ge_itemized_violation(?T).
+invariant_violation(?T, tax_nonneg)        :- inv_tax_nonneg_violation(?T).
+invariant_violation(?T, zero_ti_zero_tax)  :- inv_zero_ti_zero_tax_violation(?T).
+invariant_violation(?T, tax_le_ti)         :- inv_tax_le_ti_violation(?T).
+
+// Per-invariant pass enumeration (for reporting coverage).
+invariant_pass(?T, agi_nonneg)        :- inv_agi_nonneg_pass(?T).
+invariant_pass(?T, ti_nonneg)         :- inv_ti_nonneg_pass(?T).
+invariant_pass(?T, ti_le_agi)         :- inv_ti_le_agi_pass(?T).
+invariant_pass(?T, ded_ge_std)        :- inv_ded_ge_std_pass(?T).
+invariant_pass(?T, ded_ge_itemized)   :- inv_ded_ge_itemized_pass(?T).
+invariant_pass(?T, tax_nonneg)        :- inv_tax_nonneg_pass(?T).
+invariant_pass(?T, zero_ti_zero_tax)  :- inv_zero_ti_zero_tax_pass(?T).
+invariant_pass(?T, tax_le_ti)         :- inv_tax_le_ti_pass(?T).
