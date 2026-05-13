@@ -1,5 +1,0 @@
-flora_symbol(agi,2,\@,63,12,predicate_symbol,nontransactional_symbol,'agi_min.ergo').
-flora_symbol(income_total,2,\@,45,9,predicate_symbol,nontransactional_symbol,'agi_min.ergo').
-flora_symbol(wage_income,2,\@,30,6,predicate_symbol,nontransactional_symbol,'agi_min.ergo').
-flora_symbol(income_item,2,\@,20,5,predicate_symbol,nontransactional_symbol,'agi_min.ergo').
-flora_symbol(agi_loaded,1,\@,15,3,predicate_symbol,nontransactional_symbol,'agi_min.ergo').

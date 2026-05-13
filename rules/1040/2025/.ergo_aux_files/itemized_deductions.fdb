@@ -1,6 +1,0 @@
-#include "flrheader.flh"
-#define FLORA_COMPILATION_ID 1
-
-
-FLORA_THIS_WORKSPACE(tblflapply)(medical_floor_pct,2025,0.074999999999999997,__newcontextvar3).
-FLORA_THIS_WORKSPACE(tblflapply)(salt_cap,2025,10000,__newcontextvar3).

@@ -1,6 +1,0 @@
-#include "flrheader.flh"
-#define FLORA_COMPILATION_ID 1
-
-
-FLORA_THIS_WORKSPACE(tblflapply)(agi_loaded,1,__newcontextvar3).
-FLORA_THIS_WORKSPACE(tblflapply)(income_total,dana,80000,__newcontextvar3).

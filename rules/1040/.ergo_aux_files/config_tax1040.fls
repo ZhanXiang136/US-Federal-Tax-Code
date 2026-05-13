@@ -1,2 +1,0 @@
-flora_symbol(config_loaded,1,\@,21,5,predicate_symbol,nontransactional_symbol,'config.ergo').
-flora_symbol(tax_year,1,\@,16,4,predicate_symbol,nontransactional_symbol,'config.ergo').

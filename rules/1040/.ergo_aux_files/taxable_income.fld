@@ -1,7 +1,0 @@
-#include "flrheader.flh"
-#include "flr_fld_standardtypes.flh"
-
-#define FLORA_COMPILATION_ID 2
-
-FLORA_THIS_WORKSPACE(tblflapply)(taxable_income,__fldnewvar1,__fldnewvar2,__fldnewvar3,__fldnewvar4).
-FLORA_THIS_WORKSPACE(tblflapply)(deduction_used,__fldnewvar1,__fldnewvar2,__fldnewvar3,__fldnewvar4).
