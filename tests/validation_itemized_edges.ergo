@@ -1,0 +1,186 @@
+// Schedule A edge cases: the medical 7.5%-of-AGI floor, the $10,000 SALT cap,
+// the standard-vs-itemized switchover, and the less-common Schedule A lines.
+// All taxpayers are single under 65 unless noted (SD = 15750).
+
+// Itemized total below standard -> taxpayer falls back to standard.
+//   Wages 60000, mortgage 5000, charitable 2000.
+//   Itemized = 7000 < SD 15750. Deduction used = 15750.
+//   TI = 60000 - 15750 = 44250.
+//   Tax = 1192.5 + (44250-11925)*0.12 = 1192.5 + 3879 = 5071.5.
+filing_status(itemized_lt_std, single).
+wage_income(itemized_lt_std, 60000).
+mortgage_interest(itemized_lt_std, 5000).
+charitable_cash(itemized_lt_std, 2000).
+age_65_or_over_flag(itemized_lt_std, 0).
+blind_flag(itemized_lt_std, 0).
+spouse_age_65_or_over_flag(itemized_lt_std, 0).
+spouse_blind_flag(itemized_lt_std, 0).
+expected_taxable_income(itemized_lt_std, 44250).
+expected_tax(itemized_lt_std, 5071.5).
+
+// Itemized far above standard for an MFJ couple.
+//   Wages 200000, state income tax 15000, mortgage 20000, charitable 10000.
+//   SALT capped at 10000. Itemized = 10000 + 20000 + 10000 = 40000 > SD 31500.
+//   AGI 200000. TI = 160000.
+//   Tax = 11157 + (160000-96950)*0.22 = 11157 + 13871 = 25028.
+filing_status(big_itemized_mfj, married_filing_jointly).
+wage_income(big_itemized_mfj, 200000).
+state_local_income_taxes(big_itemized_mfj, 15000).
+mortgage_interest(big_itemized_mfj, 20000).
+charitable_cash(big_itemized_mfj, 10000).
+age_65_or_over_flag(big_itemized_mfj, 0).
+blind_flag(big_itemized_mfj, 0).
+spouse_age_65_or_over_flag(big_itemized_mfj, 0).
+spouse_blind_flag(big_itemized_mfj, 0).
+expected_itemized_deduction(big_itemized_mfj, 40000).
+expected_deduction_used(big_itemized_mfj, 40000).
+expected_taxable_income_itemized(big_itemized_mfj, 160000).
+expected_tax_itemized(big_itemized_mfj, 25028).
+expected_taxable_income(big_itemized_mfj, 160000).
+expected_tax(big_itemized_mfj, 25028).
+
+// Medical expenses exactly at the 7.5% floor -> 0 deductible medical.
+//   Wages 80000, medical 6000. AGI 80000, floor = 6000. Med ded = 0.
+//   Itemized = 0 < SD 15750. Deduction = 15750. TI = 64250.
+//   Tax = 5578.5 + (64250-48475)*0.22 = 5578.5 + 3470.5 = 9049.
+filing_status(medical_at_floor, single).
+wage_income(medical_at_floor, 80000).
+medical_expenses(medical_at_floor, 6000).
+age_65_or_over_flag(medical_at_floor, 0).
+blind_flag(medical_at_floor, 0).
+spouse_age_65_or_over_flag(medical_at_floor, 0).
+spouse_blind_flag(medical_at_floor, 0).
+expected_taxable_income(medical_at_floor, 64250).
+expected_tax(medical_at_floor, 9049).
+
+// Medical above the floor but still smaller than standard.
+//   Wages 50000, medical 10000. AGI 50000, floor 3750. Med ded = 6250.
+//   Itemized = 6250 < SD 15750. Deduction = 15750. TI = 34250.
+//   Tax = 1192.5 + (34250-11925)*0.12 = 1192.5 + 2679 = 3871.5.
+filing_status(medical_above_floor, single).
+wage_income(medical_above_floor, 50000).
+medical_expenses(medical_above_floor, 10000).
+age_65_or_over_flag(medical_above_floor, 0).
+blind_flag(medical_above_floor, 0).
+spouse_age_65_or_over_flag(medical_above_floor, 0).
+spouse_blind_flag(medical_above_floor, 0).
+expected_taxable_income(medical_above_floor, 34250).
+expected_tax(medical_above_floor, 3871.5).
+
+// Huge medical bill pushes itemized above standard.
+//   Wages 40000, medical 25000, mortgage 5000, charitable 5000.
+//   AGI 40000, floor 3000. Med ded = 22000.
+//   Itemized = 22000 + 5000 + 5000 = 32000 > SD 15750.
+//   TI = 40000 - 32000 = 8000.
+//   Tax = 8000 * 0.10 = 800.
+filing_status(medical_dominant, single).
+wage_income(medical_dominant, 40000).
+medical_expenses(medical_dominant, 25000).
+mortgage_interest(medical_dominant, 5000).
+charitable_cash(medical_dominant, 5000).
+age_65_or_over_flag(medical_dominant, 0).
+blind_flag(medical_dominant, 0).
+spouse_age_65_or_over_flag(medical_dominant, 0).
+spouse_blind_flag(medical_dominant, 0).
+expected_itemized_deduction(medical_dominant, 32000).
+expected_deduction_used(medical_dominant, 32000).
+expected_taxable_income_itemized(medical_dominant, 8000).
+expected_tax_itemized(medical_dominant, 800).
+expected_taxable_income(medical_dominant, 8000).
+expected_tax(medical_dominant, 800).
+
+// SALT exactly at the cap, mortgage adds to itemized.
+//   Wages 100000, state income tax 6000, real estate tax 4000, mortgage 10000.
+//   SALT total 10000 == cap. Itemized = 10000 + 10000 = 20000 > SD 15750.
+//   TI = 100000 - 20000 = 80000.
+//   Tax = 5578.5 + (80000-48475)*0.22 = 5578.5 + 6935.5 = 12514.
+filing_status(salt_at_cap, single).
+wage_income(salt_at_cap, 100000).
+state_local_income_taxes(salt_at_cap, 6000).
+real_estate_taxes(salt_at_cap, 4000).
+mortgage_interest(salt_at_cap, 10000).
+age_65_or_over_flag(salt_at_cap, 0).
+blind_flag(salt_at_cap, 0).
+spouse_age_65_or_over_flag(salt_at_cap, 0).
+spouse_blind_flag(salt_at_cap, 0).
+expected_itemized_deduction(salt_at_cap, 20000).
+expected_deduction_used(salt_at_cap, 20000).
+expected_taxable_income_itemized(salt_at_cap, 80000).
+expected_tax_itemized(salt_at_cap, 12514).
+expected_taxable_income(salt_at_cap, 80000).
+expected_tax(salt_at_cap, 12514).
+
+// SALT components sum above the cap -> capped at 10000.
+//   Wages 100000, state income 15000, real estate 8000, mortgage 12000.
+//   SALT components total 23000, capped to 10000.
+//   Itemized = 10000 + 12000 = 22000 > SD. TI = 78000.
+//   Tax = 5578.5 + (78000-48475)*0.22 = 5578.5 + 6495.5 = 12074.
+filing_status(salt_above_cap, single).
+wage_income(salt_above_cap, 100000).
+state_local_income_taxes(salt_above_cap, 15000).
+real_estate_taxes(salt_above_cap, 8000).
+mortgage_interest(salt_above_cap, 12000).
+age_65_or_over_flag(salt_above_cap, 0).
+blind_flag(salt_above_cap, 0).
+spouse_age_65_or_over_flag(salt_above_cap, 0).
+spouse_blind_flag(salt_above_cap, 0).
+expected_itemized_deduction(salt_above_cap, 22000).
+expected_deduction_used(salt_above_cap, 22000).
+expected_taxable_income_itemized(salt_above_cap, 78000).
+expected_tax_itemized(salt_above_cap, 12074).
+expected_taxable_income(salt_above_cap, 78000).
+expected_tax(salt_above_cap, 12074).
+
+// SALT under the cap; itemized still less than standard -> SD wins.
+//   Wages 80000, state income 3000, real estate 2000, mortgage 8000.
+//   SALT 5000, itemized 5000 + 8000 = 13000 < SD 15750. TI = 64250.
+//   Same tax as medical_at_floor: 9049.
+filing_status(salt_under_cap, single).
+wage_income(salt_under_cap, 80000).
+state_local_income_taxes(salt_under_cap, 3000).
+real_estate_taxes(salt_under_cap, 2000).
+mortgage_interest(salt_under_cap, 8000).
+age_65_or_over_flag(salt_under_cap, 0).
+blind_flag(salt_under_cap, 0).
+spouse_age_65_or_over_flag(salt_under_cap, 0).
+spouse_blind_flag(salt_under_cap, 0).
+expected_taxable_income(salt_under_cap, 64250).
+expected_tax(salt_under_cap, 9049).
+
+// Charitable noncash + cash exercised together.
+//   Wages 100000, charitable cash 5000, charitable noncash 7000, mortgage 10000.
+//   Itemized = 5000 + 7000 + 10000 = 22000 > SD. TI = 78000. Tax = 12074.
+filing_status(charitable_noncash_filer, single).
+wage_income(charitable_noncash_filer, 100000).
+charitable_cash(charitable_noncash_filer, 5000).
+charitable_noncash(charitable_noncash_filer, 7000).
+mortgage_interest(charitable_noncash_filer, 10000).
+age_65_or_over_flag(charitable_noncash_filer, 0).
+blind_flag(charitable_noncash_filer, 0).
+spouse_age_65_or_over_flag(charitable_noncash_filer, 0).
+spouse_blind_flag(charitable_noncash_filer, 0).
+expected_itemized_deduction(charitable_noncash_filer, 22000).
+expected_deduction_used(charitable_noncash_filer, 22000).
+expected_taxable_income_itemized(charitable_noncash_filer, 78000).
+expected_tax_itemized(charitable_noncash_filer, 12074).
+expected_taxable_income(charitable_noncash_filer, 78000).
+expected_tax(charitable_noncash_filer, 12074).
+
+// Casualty losses on Schedule A.
+//   Wages 90000, casualty 12000, mortgage 8000.
+//   Itemized = 12000 + 8000 = 20000 > SD. TI = 70000.
+//   Tax = 5578.5 + (70000-48475)*0.22 = 5578.5 + 4735.5 = 10314.
+filing_status(casualty_filer, single).
+wage_income(casualty_filer, 90000).
+casualty_losses(casualty_filer, 12000).
+mortgage_interest(casualty_filer, 8000).
+age_65_or_over_flag(casualty_filer, 0).
+blind_flag(casualty_filer, 0).
+spouse_age_65_or_over_flag(casualty_filer, 0).
+spouse_blind_flag(casualty_filer, 0).
+expected_itemized_deduction(casualty_filer, 20000).
+expected_deduction_used(casualty_filer, 20000).
+expected_taxable_income_itemized(casualty_filer, 70000).
+expected_tax_itemized(casualty_filer, 10314).
+expected_taxable_income(casualty_filer, 70000).
+expected_tax(casualty_filer, 10314).

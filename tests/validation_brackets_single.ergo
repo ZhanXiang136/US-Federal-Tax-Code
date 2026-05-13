@@ -1,0 +1,80 @@
+// Single-filer bracket boundary cases for 2025.
+// Each taxpayer's wages are chosen so that taxable income (= AGI - 15750)
+// lands exactly on the top of one bracket. Tax values are hand-computed
+// against the cumulative-progressive schedule in tax_brackets.ergo.
+
+// b1: TI = 11925 (top of 10%). Tax = 11925*0.10 = 1192.5.
+filing_status(b1_single, single).
+wage_income(b1_single, 27675).
+age_65_or_over_flag(b1_single, 0).
+blind_flag(b1_single, 0).
+spouse_age_65_or_over_flag(b1_single, 0).
+spouse_blind_flag(b1_single, 0).
+expected_taxable_income(b1_single, 11925).
+expected_tax(b1_single, 1192.5).
+
+// b2: TI = 48475 (top of 12%).
+//   Tax = 1192.5 + (48475-11925)*0.12 = 1192.5 + 4386 = 5578.5.
+filing_status(b2_single, single).
+wage_income(b2_single, 64225).
+age_65_or_over_flag(b2_single, 0).
+blind_flag(b2_single, 0).
+spouse_age_65_or_over_flag(b2_single, 0).
+spouse_blind_flag(b2_single, 0).
+expected_taxable_income(b2_single, 48475).
+expected_tax(b2_single, 5578.5).
+
+// b3: TI = 103350 (top of 22%).
+//   Tax = 5578.5 + (103350-48475)*0.22 = 5578.5 + 12072.5 = 17651.
+filing_status(b3_single, single).
+wage_income(b3_single, 119100).
+age_65_or_over_flag(b3_single, 0).
+blind_flag(b3_single, 0).
+spouse_age_65_or_over_flag(b3_single, 0).
+spouse_blind_flag(b3_single, 0).
+expected_taxable_income(b3_single, 103350).
+expected_tax(b3_single, 17651).
+
+// b4: TI = 197300 (top of 24%).
+//   Tax = 17651 + (197300-103350)*0.24 = 17651 + 22548 = 40199.
+filing_status(b4_single, single).
+wage_income(b4_single, 213050).
+age_65_or_over_flag(b4_single, 0).
+blind_flag(b4_single, 0).
+spouse_age_65_or_over_flag(b4_single, 0).
+spouse_blind_flag(b4_single, 0).
+expected_taxable_income(b4_single, 197300).
+expected_tax(b4_single, 40199).
+
+// b5: TI = 250525 (top of 32%).
+//   Tax = 40199 + (250525-197300)*0.32 = 40199 + 17032 = 57231.
+filing_status(b5_single, single).
+wage_income(b5_single, 266275).
+age_65_or_over_flag(b5_single, 0).
+blind_flag(b5_single, 0).
+spouse_age_65_or_over_flag(b5_single, 0).
+spouse_blind_flag(b5_single, 0).
+expected_taxable_income(b5_single, 250525).
+expected_tax(b5_single, 57231).
+
+// b6: TI = 626350 (top of 35%).
+//   Tax = 57231 + (626350-250525)*0.35 = 57231 + 131538.75 = 188769.75.
+filing_status(b6_single, single).
+wage_income(b6_single, 642100).
+age_65_or_over_flag(b6_single, 0).
+blind_flag(b6_single, 0).
+spouse_age_65_or_over_flag(b6_single, 0).
+spouse_blind_flag(b6_single, 0).
+expected_taxable_income(b6_single, 626350).
+expected_tax(b6_single, 188769.75).
+
+// b7: TI = 700000 (inside the 37% bracket).
+//   Tax = 188769.75 + (700000-626350)*0.37 = 188769.75 + 27250.5 = 216020.25.
+filing_status(b7_single, single).
+wage_income(b7_single, 715750).
+age_65_or_over_flag(b7_single, 0).
+blind_flag(b7_single, 0).
+spouse_age_65_or_over_flag(b7_single, 0).
+spouse_blind_flag(b7_single, 0).
+expected_taxable_income(b7_single, 700000).
+expected_tax(b7_single, 216020.25).

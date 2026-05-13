@@ -55,7 +55,7 @@ except Exception as exc:
     ) from exc
 
 
-RULE_FILES = [
+CORE_RULE_FILES = [
     BASE_DIR / "rules/1040/config.ergo",
     BASE_DIR / "rules/1040/agi.ergo",
     BASE_DIR / "rules/1040/2025/standard_deduction.ergo",
@@ -63,10 +63,14 @@ RULE_FILES = [
     BASE_DIR / "rules/1040/2025/tax_brackets.ergo",
     BASE_DIR / "rules/1040/taxable_income.ergo",
     BASE_DIR / "rules/1040/summary_and_explanations.ergo",
-    BASE_DIR / "tests/examples_2025_basic.ergo",
-    BASE_DIR / "tests/examples_2025_agi.ergo",
-    BASE_DIR / "tests/examples_2025_itemized_and_explanations.ergo",
 ]
+
+
+def discover_test_files() -> list[Path]:
+    return sorted((BASE_DIR / "tests").glob("*.ergo"))
+
+
+RULE_FILES = CORE_RULE_FILES + discover_test_files()
 
 DEFAULT_QUERIES = [
     "case_ok(?T).",
@@ -146,6 +150,11 @@ def parse_args() -> argparse.Namespace:
         help="Run the built-in default demo queries and exit.",
     )
     parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Run the validation suite and exit non-zero if any case fails.",
+    )
+    parser.add_argument(
         "--no-interactive",
         action="store_true",
         help="Disable the interactive REPL even when no --query is supplied.",
@@ -187,6 +196,68 @@ def run_queries(queries: list[str]) -> None:
     for query in queries:
         print(f"\n?- {query}")
         run_query(query)
+
+
+def _collect(query: str) -> list[dict]:
+    try:
+        answers = pyergo_query(query)
+    except Exception as exc:
+        print(f"  [error] {query}: {exc}")
+        return []
+    return [{name: value for (name, value) in answer[0]} for answer in (answers or [])]
+
+
+def _atom(value) -> str:
+    return getattr(value, "value", value)
+
+
+def run_tests() -> int:
+    """Run the validation suite. Returns a process exit code (0 = all pass)."""
+    print("\n=== Validation suite ===")
+
+    passes = _collect("validation_pass(?T).")
+    fails = _collect("validation_fail(?T, ?ExpTI, ?TI, ?ExpTax, ?Tax).")
+    agi_passes = _collect("agi_pass(?T).")
+    agi_fails = _collect("agi_fail(?T, ?ExpAGI, ?AGI).")
+    itemized_passes = _collect("itemized_pass(?T).")
+    itemized_fails = _collect("itemized_fail(?T).")
+
+    pass_names = sorted({str(_atom(b["?T"])) for b in passes})
+    fail_records = sorted(
+        {(str(_atom(b["?T"])), b["?ExpTI"], b["?TI"], b["?ExpTax"], b["?Tax"]) for b in fails}
+    )
+    agi_pass_names = sorted({str(_atom(b["?T"])) for b in agi_passes})
+    agi_fail_records = sorted(
+        {(str(_atom(b["?T"])), b["?ExpAGI"], b["?AGI"]) for b in agi_fails}
+    )
+    itemized_pass_names = sorted({str(_atom(b["?T"])) for b in itemized_passes})
+    itemized_fail_names = sorted({str(_atom(b["?T"])) for b in itemized_fails})
+
+    print(f"\nTaxable income + tax: {len(pass_names)} pass, {len(fail_records)} fail")
+    for name in pass_names:
+        print(f"  PASS  {name}")
+    for name, exp_ti, ti, exp_tax, tax in fail_records:
+        print(f"  FAIL  {name}: TI expected={exp_ti} got={ti}; Tax expected={exp_tax} got={tax}")
+
+    print(f"\nAGI checks: {len(agi_pass_names)} pass, {len(agi_fail_records)} fail")
+    for name in agi_pass_names:
+        print(f"  PASS  {name}")
+    for name, exp_agi, agi_val in agi_fail_records:
+        print(f"  FAIL  {name}: AGI expected={exp_agi} got={agi_val}")
+
+    print(
+        f"\nItemized checks: {len(itemized_pass_names)} pass, "
+        f"{len(itemized_fail_names)} fail"
+    )
+    for name in itemized_pass_names:
+        print(f"  PASS  {name}")
+    for name in itemized_fail_names:
+        print(f"  FAIL  {name}")
+
+    total_fail = len(fail_records) + len(agi_fail_records) + len(itemized_fail_names)
+    total_pass = len(pass_names) + len(agi_pass_names) + len(itemized_pass_names)
+    print(f"\n=== {total_pass} checks passed, {total_fail} failed ===")
+    return 0 if total_fail == 0 else 1
 
 
 def normalize_query(text: str) -> str:
@@ -367,12 +438,15 @@ def main() -> None:
     require_runtime_paths()
     combined_path = build_combined_rules(RULE_FILES)
 
+    exit_code = 0
     pyergo_start_session(str(XSBARCHDIR), str(ERGOROOT))
     try:
         result = pyergo_command(f"['{combined_path}'].")
         print(f"Loaded combined rules file (result: {result})")
 
-        if args.demo:
+        if args.test:
+            exit_code = run_tests()
+        elif args.demo:
             run_queries(DEFAULT_QUERIES)
         elif args.queries:
             run_queries(args.queries)
@@ -383,6 +457,9 @@ def main() -> None:
     finally:
         pyergo_end_session()
         combined_path.unlink(missing_ok=True)
+
+    if args.test:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,134 @@
+// Coverage for non-wage income sources and Schedule 1 adjustments.
+// All taxpayers here are single under 65 not blind (SD = 15750).
+
+// Multi-source income: wages + interest + ordinary div + capital gains.
+//   Income 50000+1000+500+2000 = 53500. AGI 53500. TI 37750.
+//   Tax = 1192.5 + (37750-11925)*0.12 = 1192.5 + 3099 = 4291.5.
+filing_status(multi_income, single).
+wage_income(multi_income, 50000).
+taxable_interest_income(multi_income, 1000).
+ordinary_dividends(multi_income, 500).
+capital_gains(multi_income, 2000).
+age_65_or_over_flag(multi_income, 0).
+blind_flag(multi_income, 0).
+spouse_age_65_or_over_flag(multi_income, 0).
+spouse_blind_flag(multi_income, 0).
+expected_agi(multi_income, 53500).
+expected_taxable_income(multi_income, 37750).
+expected_tax(multi_income, 4291.5).
+
+// Business income with a Schedule 1 SE-tax adjustment.
+//   Income 30000+25000 = 55000, adjustments 1500, AGI 53500. TI 37750.
+//   Same tax as multi_income: 4291.5.
+filing_status(business_owner, single).
+wage_income(business_owner, 30000).
+business_income(business_owner, 25000).
+self_employment_tax_deduction(business_owner, 1500).
+age_65_or_over_flag(business_owner, 0).
+blind_flag(business_owner, 0).
+spouse_age_65_or_over_flag(business_owner, 0).
+spouse_blind_flag(business_owner, 0).
+expected_agi(business_owner, 53500).
+expected_taxable_income(business_owner, 37750).
+expected_tax(business_owner, 4291.5).
+
+// Rental + royalty income.
+//   Income 45000+6000+2000 = 53000. AGI 53000. TI 37250.
+//   Tax = 1192.5 + (37250-11925)*0.12 = 1192.5 + 3039 = 4231.5.
+filing_status(rental_landlord, single).
+wage_income(rental_landlord, 45000).
+rental_income(rental_landlord, 6000).
+royalty_income(rental_landlord, 2000).
+age_65_or_over_flag(rental_landlord, 0).
+blind_flag(rental_landlord, 0).
+spouse_age_65_or_over_flag(rental_landlord, 0).
+spouse_blind_flag(rental_landlord, 0).
+expected_agi(rental_landlord, 53000).
+expected_taxable_income(rental_landlord, 37250).
+expected_tax(rental_landlord, 4231.5).
+
+// Retiree: Social Security taxable portion + other income, no wages.
+//   Income 12000+15000 = 27000. AGI 27000. TI = 11250 (in 10% bracket).
+//   Tax = 11250 * 0.10 = 1125.
+filing_status(retiree, single).
+social_security_taxable(retiree, 12000).
+other_income(retiree, 15000).
+age_65_or_over_flag(retiree, 0).
+blind_flag(retiree, 0).
+spouse_age_65_or_over_flag(retiree, 0).
+spouse_blind_flag(retiree, 0).
+expected_agi(retiree, 27000).
+expected_taxable_income(retiree, 11250).
+expected_tax(retiree, 1125).
+
+// Heavy above-the-line adjustments.
+//   Wages 80000, adjustments: IRA 6500 + HSA 4000 + student loan 2500 = 13000.
+//   AGI 67000. TI 51250 (in 22% bracket).
+//   Tax = 5578.5 + (51250-48475)*0.22 = 5578.5 + 610.5 = 6189.
+filing_status(adjustments_heavy, single).
+wage_income(adjustments_heavy, 80000).
+ira_deduction(adjustments_heavy, 6500).
+hsa_deduction(adjustments_heavy, 4000).
+student_loan_interest(adjustments_heavy, 2500).
+age_65_or_over_flag(adjustments_heavy, 0).
+blind_flag(adjustments_heavy, 0).
+spouse_age_65_or_over_flag(adjustments_heavy, 0).
+spouse_blind_flag(adjustments_heavy, 0).
+expected_agi(adjustments_heavy, 67000).
+expected_taxable_income(adjustments_heavy, 51250).
+expected_tax(adjustments_heavy, 6189).
+
+// AGI floored at zero when adjustments exceed income.
+//   Wages 5000, IRA 10000 -> would be -5000 -> AGI floored to 0.
+filing_status(agi_floored, single).
+wage_income(agi_floored, 5000).
+ira_deduction(agi_floored, 10000).
+age_65_or_over_flag(agi_floored, 0).
+blind_flag(agi_floored, 0).
+spouse_age_65_or_over_flag(agi_floored, 0).
+spouse_blind_flag(agi_floored, 0).
+expected_agi(agi_floored, 0).
+expected_taxable_income(agi_floored, 0).
+expected_tax(agi_floored, 0).
+
+// Unemployment compensation.
+//   Wages 30000, unemployment 8000. AGI 38000. TI 22250.
+//   Tax = 1192.5 + (22250-11925)*0.12 = 1192.5 + 1239 = 2431.5.
+filing_status(unemployed, single).
+wage_income(unemployed, 30000).
+unemployment_comp(unemployed, 8000).
+age_65_or_over_flag(unemployed, 0).
+blind_flag(unemployed, 0).
+spouse_age_65_or_over_flag(unemployed, 0).
+spouse_blind_flag(unemployed, 0).
+expected_agi(unemployed, 38000).
+expected_taxable_income(unemployed, 22250).
+expected_tax(unemployed, 2431.5).
+
+// Taxable state refund (Schedule 1 line 1).
+//   Wages 50000, refunds 1000. AGI 51000. TI 35250.
+//   Tax = 1192.5 + (35250-11925)*0.12 = 1192.5 + 2799 = 3991.5.
+filing_status(refund_recipient, single).
+wage_income(refund_recipient, 50000).
+taxable_refunds(refund_recipient, 1000).
+age_65_or_over_flag(refund_recipient, 0).
+blind_flag(refund_recipient, 0).
+spouse_age_65_or_over_flag(refund_recipient, 0).
+spouse_blind_flag(refund_recipient, 0).
+expected_agi(refund_recipient, 51000).
+expected_taxable_income(refund_recipient, 35250).
+expected_tax(refund_recipient, 3991.5).
+
+// Pre-2019 alimony received (still taxable under grandfathered rule).
+//   Wages 40000, alimony 6000. AGI 46000. TI 30250.
+//   Tax = 1192.5 + (30250-11925)*0.12 = 1192.5 + 2199 = 3391.5.
+filing_status(alimony_recipient, single).
+wage_income(alimony_recipient, 40000).
+alimony_received_pre2019(alimony_recipient, 6000).
+age_65_or_over_flag(alimony_recipient, 0).
+blind_flag(alimony_recipient, 0).
+spouse_age_65_or_over_flag(alimony_recipient, 0).
+spouse_blind_flag(alimony_recipient, 0).
+expected_agi(alimony_recipient, 46000).
+expected_taxable_income(alimony_recipient, 30250).
+expected_tax(alimony_recipient, 3391.5).

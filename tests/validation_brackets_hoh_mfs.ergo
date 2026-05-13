@@ -1,0 +1,84 @@
+// Head-of-household and married-filing-separately bracket boundaries for 2025.
+// HoH has its own brackets at the lower end. MFS shares Single brackets up
+// to 250,525 but splits 35%/37% at 375,800 instead of 626,350.
+
+// ---- HEAD OF HOUSEHOLD (SD = 23625) ----
+
+// b1: TI = 17000. Tax = 1700.
+filing_status(b1_hoh, head_of_household).
+wage_income(b1_hoh, 40625).
+age_65_or_over_flag(b1_hoh, 0).
+blind_flag(b1_hoh, 0).
+spouse_age_65_or_over_flag(b1_hoh, 0).
+spouse_blind_flag(b1_hoh, 0).
+expected_taxable_income(b1_hoh, 17000).
+expected_tax(b1_hoh, 1700).
+
+// b2: TI = 64850.
+//   Tax = 1700 + (64850-17000)*0.12 = 1700 + 5742 = 7442.
+filing_status(b2_hoh, head_of_household).
+wage_income(b2_hoh, 88475).
+age_65_or_over_flag(b2_hoh, 0).
+blind_flag(b2_hoh, 0).
+spouse_age_65_or_over_flag(b2_hoh, 0).
+spouse_blind_flag(b2_hoh, 0).
+expected_taxable_income(b2_hoh, 64850).
+expected_tax(b2_hoh, 7442).
+
+// b3: TI = 103350.
+//   Tax = 7442 + (103350-64850)*0.22 = 7442 + 8470 = 15912.
+filing_status(b3_hoh, head_of_household).
+wage_income(b3_hoh, 126975).
+age_65_or_over_flag(b3_hoh, 0).
+blind_flag(b3_hoh, 0).
+spouse_age_65_or_over_flag(b3_hoh, 0).
+spouse_blind_flag(b3_hoh, 0).
+expected_taxable_income(b3_hoh, 103350).
+expected_tax(b3_hoh, 15912).
+
+// b5_hoh: TI = 250500 (HoH-specific top of 32%; differs from Single's 250525).
+//   Tax = 15912 + (197300-103350)*0.24 + (250500-197300)*0.32
+//       = 15912 + 22548 + 17024 = 55484.
+filing_status(b5_hoh, head_of_household).
+wage_income(b5_hoh, 274125).
+age_65_or_over_flag(b5_hoh, 0).
+blind_flag(b5_hoh, 0).
+spouse_age_65_or_over_flag(b5_hoh, 0).
+spouse_blind_flag(b5_hoh, 0).
+expected_taxable_income(b5_hoh, 250500).
+expected_tax(b5_hoh, 55484).
+
+// ---- MARRIED FILING SEPARATELY (SD = 15750) ----
+
+// b5_mfs: TI = 250525 (same cumulative as single up to this point).
+//   Tax = 57231.
+filing_status(b5_mfs, married_filing_separately).
+wage_income(b5_mfs, 266275).
+age_65_or_over_flag(b5_mfs, 0).
+blind_flag(b5_mfs, 0).
+spouse_age_65_or_over_flag(b5_mfs, 0).
+spouse_blind_flag(b5_mfs, 0).
+expected_taxable_income(b5_mfs, 250525).
+expected_tax(b5_mfs, 57231).
+
+// b6_mfs: TI = 375800 (MFS-specific top of 35%; differs from Single's 626350).
+//   Tax = 57231 + (375800-250525)*0.35 = 57231 + 43846.25 = 101077.25.
+filing_status(b6_mfs, married_filing_separately).
+wage_income(b6_mfs, 391550).
+age_65_or_over_flag(b6_mfs, 0).
+blind_flag(b6_mfs, 0).
+spouse_age_65_or_over_flag(b6_mfs, 0).
+spouse_blind_flag(b6_mfs, 0).
+expected_taxable_income(b6_mfs, 375800).
+expected_tax(b6_mfs, 101077.25).
+
+// b7_mfs: TI = 400000 inside MFS 37% bracket.
+//   Tax = 101077.25 + (400000-375800)*0.37 = 101077.25 + 8954 = 110031.25.
+filing_status(b7_mfs, married_filing_separately).
+wage_income(b7_mfs, 415750).
+age_65_or_over_flag(b7_mfs, 0).
+blind_flag(b7_mfs, 0).
+spouse_age_65_or_over_flag(b7_mfs, 0).
+spouse_blind_flag(b7_mfs, 0).
+expected_taxable_income(b7_mfs, 400000).
+expected_tax(b7_mfs, 110031.25).

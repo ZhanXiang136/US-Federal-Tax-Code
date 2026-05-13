@@ -1,0 +1,76 @@
+// Age 65+ and blind qualifier cases.
+// 2025 per-qualifier additional standard deduction:
+//   - Single / HoH: $2,000 each.
+//   - MFJ / MFS / QSS: $1,600 each.
+
+// 1 qualifier (self age 65+), single. SD = 15750 + 2000 = 17750.
+//   Wages 50000, AGI 50000, TI = 32250.
+//   Tax = 11925*0.10 + (32250-11925)*0.12 = 1192.5 + 2439 = 3631.5.
+filing_status(senior_single, single).
+wage_income(senior_single, 50000).
+age_65_or_over_flag(senior_single, 1).
+blind_flag(senior_single, 0).
+spouse_age_65_or_over_flag(senior_single, 0).
+spouse_blind_flag(senior_single, 0).
+expected_taxable_income(senior_single, 32250).
+expected_tax(senior_single, 3631.5).
+
+// 1 qualifier (self blind), single. SD = 17750.
+//   Wages 40000, TI = 22250.
+//   Tax = 1192.5 + (22250-11925)*0.12 = 1192.5 + 1239 = 2431.5.
+filing_status(blind_single, single).
+wage_income(blind_single, 40000).
+age_65_or_over_flag(blind_single, 0).
+blind_flag(blind_single, 1).
+spouse_age_65_or_over_flag(blind_single, 0).
+spouse_blind_flag(blind_single, 0).
+expected_taxable_income(blind_single, 22250).
+expected_tax(blind_single, 2431.5).
+
+// 2 qualifiers (self age + self blind), single. SD = 15750 + 4000 = 19750.
+//   Wages 60000, TI = 40250.
+//   Tax = 1192.5 + (40250-11925)*0.12 = 1192.5 + 3399 = 4591.5.
+filing_status(senior_blind_single, single).
+wage_income(senior_blind_single, 60000).
+age_65_or_over_flag(senior_blind_single, 1).
+blind_flag(senior_blind_single, 1).
+spouse_age_65_or_over_flag(senior_blind_single, 0).
+spouse_blind_flag(senior_blind_single, 0).
+expected_taxable_income(senior_blind_single, 40250).
+expected_tax(senior_blind_single, 4591.5).
+
+// 1 qualifier (self age 65+), MFJ. SD = 31500 + 1600 = 33100.
+//   Wages 80000, TI = 46900.
+//   Tax = 2385 + (46900-23850)*0.12 = 2385 + 2766 = 5151.
+filing_status(senior_mfj, married_filing_jointly).
+wage_income(senior_mfj, 80000).
+age_65_or_over_flag(senior_mfj, 1).
+blind_flag(senior_mfj, 0).
+spouse_age_65_or_over_flag(senior_mfj, 0).
+spouse_blind_flag(senior_mfj, 0).
+expected_taxable_income(senior_mfj, 46900).
+expected_tax(senior_mfj, 5151).
+
+// 2 qualifiers (both spouses age 65+), MFJ. SD = 31500 + 3200 = 34700.
+//   Wages 100000, TI = 65300.
+//   Tax = 2385 + (65300-23850)*0.12 = 2385 + 4974 = 7359.
+filing_status(both_seniors_mfj, married_filing_jointly).
+wage_income(both_seniors_mfj, 100000).
+age_65_or_over_flag(both_seniors_mfj, 1).
+blind_flag(both_seniors_mfj, 0).
+spouse_age_65_or_over_flag(both_seniors_mfj, 1).
+spouse_blind_flag(both_seniors_mfj, 0).
+expected_taxable_income(both_seniors_mfj, 65300).
+expected_tax(both_seniors_mfj, 7359).
+
+// 4 qualifiers (both age + both blind), MFJ. SD = 31500 + 6400 = 37900.
+//   Wages 120000, TI = 82100.
+//   Tax = 2385 + (82100-23850)*0.12 = 2385 + 6990 = 9375.
+filing_status(four_qualifiers_mfj, married_filing_jointly).
+wage_income(four_qualifiers_mfj, 120000).
+age_65_or_over_flag(four_qualifiers_mfj, 1).
+blind_flag(four_qualifiers_mfj, 1).
+spouse_age_65_or_over_flag(four_qualifiers_mfj, 1).
+spouse_blind_flag(four_qualifiers_mfj, 1).
+expected_taxable_income(four_qualifiers_mfj, 82100).
+expected_tax(four_qualifiers_mfj, 9375).

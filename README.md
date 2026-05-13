@@ -20,6 +20,14 @@ Repository layout
 - tests/examples_2025_basic.ergo: baseline tax and taxable-income examples
 - tests/examples_2025_agi.ergo: AGI-specific examples
 - tests/examples_2025_itemized_and_explanations.ergo: itemized-deduction and explainability examples
+- tests/validation_filing_statuses.ergo: low/mid income across all five filing statuses
+- tests/validation_brackets_single.ergo: 2025 bracket boundaries for single filers
+- tests/validation_brackets_mfj.ergo: 2025 bracket boundaries for MFJ and QSS
+- tests/validation_brackets_hoh_mfs.ergo: 2025 bracket boundaries for HoH and MFS
+- tests/validation_age_blind.ergo: 1–4 age/blind qualifier scenarios
+- tests/validation_income_sources.ergo: multi-source income, retirement, adjustments, AGI floor
+- tests/validation_itemized_edges.ergo: medical floor, SALT cap, casualty, charitable noncash
+- tests/validation_runner.ergo: pass/fail predicates used by `python ergo.py --test`
 - tax_1040_2024.ergo and examples_1040_2024.ergo: legacy standalone prototype files kept for reference only
 
 Quick start (ErgoAI Python bridge)
@@ -41,6 +49,8 @@ Query syntax
 - Use shell double quotes around the full query string
 
 Useful commands
+- Run the full validation suite (exits non-zero on any failure):
+  `python ergo.py --test`
 - List the default demo queries:
   `python ergo.py --list-default-queries`
 - Run one query:

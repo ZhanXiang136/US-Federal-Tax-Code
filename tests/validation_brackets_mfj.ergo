@@ -1,0 +1,88 @@
+// MFJ (and shared QSS) bracket boundary cases for 2025.
+// Wages chosen so TI = AGI - 31500 lands at each bracket boundary.
+
+// b1: TI = 23850. Tax = 23850*0.10 = 2385.
+filing_status(b1_mfj, married_filing_jointly).
+wage_income(b1_mfj, 55350).
+age_65_or_over_flag(b1_mfj, 0).
+blind_flag(b1_mfj, 0).
+spouse_age_65_or_over_flag(b1_mfj, 0).
+spouse_blind_flag(b1_mfj, 0).
+expected_taxable_income(b1_mfj, 23850).
+expected_tax(b1_mfj, 2385).
+
+// b2: TI = 96950.
+//   Tax = 2385 + (96950-23850)*0.12 = 2385 + 8772 = 11157.
+filing_status(b2_mfj, married_filing_jointly).
+wage_income(b2_mfj, 128450).
+age_65_or_over_flag(b2_mfj, 0).
+blind_flag(b2_mfj, 0).
+spouse_age_65_or_over_flag(b2_mfj, 0).
+spouse_blind_flag(b2_mfj, 0).
+expected_taxable_income(b2_mfj, 96950).
+expected_tax(b2_mfj, 11157).
+
+// b3: TI = 206700.
+//   Tax = 11157 + (206700-96950)*0.22 = 11157 + 24145 = 35302.
+filing_status(b3_mfj, married_filing_jointly).
+wage_income(b3_mfj, 238200).
+age_65_or_over_flag(b3_mfj, 0).
+blind_flag(b3_mfj, 0).
+spouse_age_65_or_over_flag(b3_mfj, 0).
+spouse_blind_flag(b3_mfj, 0).
+expected_taxable_income(b3_mfj, 206700).
+expected_tax(b3_mfj, 35302).
+
+// b4: TI = 394600.
+//   Tax = 35302 + (394600-206700)*0.24 = 35302 + 45096 = 80398.
+filing_status(b4_mfj, married_filing_jointly).
+wage_income(b4_mfj, 426100).
+age_65_or_over_flag(b4_mfj, 0).
+blind_flag(b4_mfj, 0).
+spouse_age_65_or_over_flag(b4_mfj, 0).
+spouse_blind_flag(b4_mfj, 0).
+expected_taxable_income(b4_mfj, 394600).
+expected_tax(b4_mfj, 80398).
+
+// b5: TI = 501050.
+//   Tax = 80398 + (501050-394600)*0.32 = 80398 + 34064 = 114462.
+filing_status(b5_mfj, married_filing_jointly).
+wage_income(b5_mfj, 532550).
+age_65_or_over_flag(b5_mfj, 0).
+blind_flag(b5_mfj, 0).
+spouse_age_65_or_over_flag(b5_mfj, 0).
+spouse_blind_flag(b5_mfj, 0).
+expected_taxable_income(b5_mfj, 501050).
+expected_tax(b5_mfj, 114462).
+
+// b6: TI = 751600.
+//   Tax = 114462 + (751600-501050)*0.35 = 114462 + 87692.5 = 202154.5.
+filing_status(b6_mfj, married_filing_jointly).
+wage_income(b6_mfj, 783100).
+age_65_or_over_flag(b6_mfj, 0).
+blind_flag(b6_mfj, 0).
+spouse_age_65_or_over_flag(b6_mfj, 0).
+spouse_blind_flag(b6_mfj, 0).
+expected_taxable_income(b6_mfj, 751600).
+expected_tax(b6_mfj, 202154.5).
+
+// b7: TI = 800000 inside the 37% bracket.
+//   Tax = 202154.5 + (800000-751600)*0.37 = 202154.5 + 17908 = 220062.5.
+filing_status(b7_mfj, married_filing_jointly).
+wage_income(b7_mfj, 831500).
+age_65_or_over_flag(b7_mfj, 0).
+blind_flag(b7_mfj, 0).
+spouse_age_65_or_over_flag(b7_mfj, 0).
+spouse_blind_flag(b7_mfj, 0).
+expected_taxable_income(b7_mfj, 800000).
+expected_tax(b7_mfj, 220062.5).
+
+// QSS uses MFJ brackets; spot-check one boundary.
+filing_status(b3_qss, qualifying_surviving_spouse).
+wage_income(b3_qss, 238200).
+age_65_or_over_flag(b3_qss, 0).
+blind_flag(b3_qss, 0).
+spouse_age_65_or_over_flag(b3_qss, 0).
+spouse_blind_flag(b3_qss, 0).
+expected_taxable_income(b3_qss, 206700).
+expected_tax(b3_qss, 35302).

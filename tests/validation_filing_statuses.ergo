@@ -1,0 +1,108 @@
+// Filing-status coverage: every status exercised at a low-income point
+// (deductions exceed AGI -> TI=0, Tax=0) and at a mid-income point
+// (taxable income lands inside the 12% bracket).
+//
+// Standard deductions (2025): single/MFS 15750, MFJ/QSS 31500, HoH 23625.
+
+// ---- LOW INCOME: AGI <= standard deduction, so TI = 0 and Tax = 0. ----
+
+filing_status(low_single, single).
+wage_income(low_single, 10000).
+age_65_or_over_flag(low_single, 0).
+blind_flag(low_single, 0).
+spouse_age_65_or_over_flag(low_single, 0).
+spouse_blind_flag(low_single, 0).
+expected_taxable_income(low_single, 0).
+expected_tax(low_single, 0).
+
+filing_status(low_mfj, married_filing_jointly).
+wage_income(low_mfj, 20000).
+age_65_or_over_flag(low_mfj, 0).
+blind_flag(low_mfj, 0).
+spouse_age_65_or_over_flag(low_mfj, 0).
+spouse_blind_flag(low_mfj, 0).
+expected_taxable_income(low_mfj, 0).
+expected_tax(low_mfj, 0).
+
+filing_status(low_mfs, married_filing_separately).
+wage_income(low_mfs, 8000).
+age_65_or_over_flag(low_mfs, 0).
+blind_flag(low_mfs, 0).
+spouse_age_65_or_over_flag(low_mfs, 0).
+spouse_blind_flag(low_mfs, 0).
+expected_taxable_income(low_mfs, 0).
+expected_tax(low_mfs, 0).
+
+filing_status(low_hoh, head_of_household).
+wage_income(low_hoh, 18000).
+age_65_or_over_flag(low_hoh, 0).
+blind_flag(low_hoh, 0).
+spouse_age_65_or_over_flag(low_hoh, 0).
+spouse_blind_flag(low_hoh, 0).
+expected_taxable_income(low_hoh, 0).
+expected_tax(low_hoh, 0).
+
+filing_status(low_qss, qualifying_surviving_spouse).
+wage_income(low_qss, 22000).
+age_65_or_over_flag(low_qss, 0).
+blind_flag(low_qss, 0).
+spouse_age_65_or_over_flag(low_qss, 0).
+spouse_blind_flag(low_qss, 0).
+expected_taxable_income(low_qss, 0).
+expected_tax(low_qss, 0).
+
+// ---- MID INCOME: TI lands inside the 12% bracket for each status. ----
+
+// single: AGI 40000, SD 15750, TI 24250.
+//   Tax = 11925*0.10 + (24250-11925)*0.12 = 1192.50 + 1479.00 = 2671.50.
+filing_status(mid_single, single).
+wage_income(mid_single, 40000).
+age_65_or_over_flag(mid_single, 0).
+blind_flag(mid_single, 0).
+spouse_age_65_or_over_flag(mid_single, 0).
+spouse_blind_flag(mid_single, 0).
+expected_taxable_income(mid_single, 24250).
+expected_tax(mid_single, 2671.5).
+
+// MFJ: AGI 80000, SD 31500, TI 48500.
+//   Tax = 23850*0.10 + (48500-23850)*0.12 = 2385 + 2958 = 5343.
+filing_status(mid_mfj, married_filing_jointly).
+wage_income(mid_mfj, 80000).
+age_65_or_over_flag(mid_mfj, 0).
+blind_flag(mid_mfj, 0).
+spouse_age_65_or_over_flag(mid_mfj, 0).
+spouse_blind_flag(mid_mfj, 0).
+expected_taxable_income(mid_mfj, 48500).
+expected_tax(mid_mfj, 5343).
+
+// MFS: AGI 40000, SD 15750, TI 24250 (same brackets as single in this range).
+filing_status(mid_mfs, married_filing_separately).
+wage_income(mid_mfs, 40000).
+age_65_or_over_flag(mid_mfs, 0).
+blind_flag(mid_mfs, 0).
+spouse_age_65_or_over_flag(mid_mfs, 0).
+spouse_blind_flag(mid_mfs, 0).
+expected_taxable_income(mid_mfs, 24250).
+expected_tax(mid_mfs, 2671.5).
+
+// HoH: AGI 50000, SD 23625, TI 26375.
+//   Tax = 17000*0.10 + (26375-17000)*0.12 = 1700 + 1125 = 2825.
+filing_status(mid_hoh, head_of_household).
+wage_income(mid_hoh, 50000).
+age_65_or_over_flag(mid_hoh, 0).
+blind_flag(mid_hoh, 0).
+spouse_age_65_or_over_flag(mid_hoh, 0).
+spouse_blind_flag(mid_hoh, 0).
+expected_taxable_income(mid_hoh, 26375).
+expected_tax(mid_hoh, 2825).
+
+// QSS: AGI 75000, SD 31500, TI 43500 (shares MFJ brackets).
+//   Tax = 23850*0.10 + (43500-23850)*0.12 = 2385 + 2358 = 4743.
+filing_status(mid_qss, qualifying_surviving_spouse).
+wage_income(mid_qss, 75000).
+age_65_or_over_flag(mid_qss, 0).
+blind_flag(mid_qss, 0).
+spouse_age_65_or_over_flag(mid_qss, 0).
+spouse_blind_flag(mid_qss, 0).
+expected_taxable_income(mid_qss, 43500).
+expected_tax(mid_qss, 4743).

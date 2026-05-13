@@ -1,0 +1,61 @@
+// Validation runner.
+//
+// Enumerate every taxpayer that has an expected_tax fact and check it.
+// A pass means the model's tax_summary matches the expected TI and tax.
+// A fail returns the taxpayer plus the actual vs expected values so the
+// user can see which case diverged.
+
+validation_pass(?T) :-
+    expected_taxable_income(?T, ?ExpTI),
+    expected_tax(?T, ?ExpTax),
+    tax_year(?Year),
+    tax_summary_full_det(?T, ?Year, ?_S, ?_A, ?_SD, ?_ID, ?_D, ?TI, ?Tax),
+    ?TI =:= ?ExpTI,
+    ?Tax =:= ?ExpTax.
+
+validation_fail(?T, ?ExpTI, ?TI, ?ExpTax, ?Tax) :-
+    expected_taxable_income(?T, ?ExpTI),
+    expected_tax(?T, ?ExpTax),
+    tax_year(?Year),
+    tax_summary_full_det(?T, ?Year, ?_S, ?_A, ?_SD, ?_ID, ?_D, ?TI, ?Tax),
+    \+ (?TI =:= ?ExpTI).
+
+validation_fail(?T, ?ExpTI, ?TI, ?ExpTax, ?Tax) :-
+    expected_taxable_income(?T, ?ExpTI),
+    expected_tax(?T, ?ExpTax),
+    tax_year(?Year),
+    tax_summary_full_det(?T, ?Year, ?_S, ?_A, ?_SD, ?_ID, ?_D, ?TI, ?Tax),
+    ?TI =:= ?ExpTI,
+    \+ (?Tax =:= ?ExpTax).
+
+// AGI sub-check: only fires for taxpayers that asserted an expected_agi.
+agi_pass(?T) :-
+    expected_agi(?T, ?ExpAGI),
+    agi(?T, ?AGI),
+    ?AGI =:= ?ExpAGI.
+
+agi_fail(?T, ?ExpAGI, ?AGI) :-
+    expected_agi(?T, ?ExpAGI),
+    agi(?T, ?AGI),
+    \+ (?AGI =:= ?ExpAGI).
+
+// Itemized sub-check: only fires for taxpayers that asserted itemized expectations.
+itemized_pass(?T) :-
+    tax_year(?Year),
+    expected_itemized_deduction(?T, ?ExpID),
+    expected_deduction_used(?T, ?ExpDed),
+    expected_taxable_income_itemized(?T, ?ExpTI),
+    expected_tax_itemized(?T, ?ExpTax),
+    filing_status(?T, ?Status),
+    itemized_deduction(?T, ?Year, ?ID),
+    deduction_used(?T, ?Year, ?Ded),
+    taxable_income(?T, ?Year, ?TI),
+    tax_liability(?Year, ?Status, ?TI, ?Tax),
+    ?ID =:= ?ExpID,
+    ?Ded =:= ?ExpDed,
+    ?TI =:= ?ExpTI,
+    ?Tax =:= ?ExpTax.
+
+itemized_fail(?T) :-
+    expected_itemized_deduction(?T, _),
+    \+ itemized_pass(?T).
